@@ -1,4 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EV Charging Hub – Autonomous Wireless Docking Demo
+
+This project showcases an autonomous mobile robot navigating to an electric vehicle (EV) charging position and conceptually aligning wireless coils for efficient, contactless charging. It includes:
+
+- A 2D SLAM-inspired obstacle avoidance + docking simulation
+- A 3D dual‑camera navigation + alignment simulation (path planning, navigation, fine alignment, charging)
+- Interactive 3D model viewer (placeholder until assets are added)
+
+Built with Next.js App Router, React 19, `@react-three/fiber`, `@react-three/drei`, Framer Motion, and Tailwind CSS v4.
 
 ## Getting Started
 
@@ -20,17 +28,71 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Simulations & Controls
 
-To learn more about Next.js, take a look at the following resources:
+### 2D SLAM + Docking (`SlamSim`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Actions:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Click inside the canvas: Move the EV target.
+- Play / Pause: Toggle continuous simulation.
+- Step: Advance one frame while paused.
+- Stop/Reset: Reset robot + target + path.
+- Speed slider: Scale translational velocity 0.25×–3×.
+- Obstacles checkbox: Toggle avoidance.
+- +Obstacle: Add a random obstacle; Reset Obstacles returns to defaults.
 
-## Deploy on Vercel
+Visual Layers:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Grid + path trail (green)
+- Robot velocity vector (blue)
+- Sensor FOV arc
+- Dynamic phase indicator (Locate, Plan Path, Navigate & Avoid, Fine Alignment, Charging / Coupled)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 3D Navigation (`RobotNav3D`)
+
+Workflow:
+
+1. (Optional) Click ground plane to reposition car target.
+2. Press Plan to generate a simple L‑shaped path.
+3. Play to navigate; robot transitions phases (Navigate → Fine Align → Charging).
+4. Adjust car position and re‑Plan as needed.
+
+Controls:
+
+- Dual views: perspective (interactive OrbitControls) + orthographic top view.
+- Plan / Play / Pause / Reset buttons.
+- Speed slider (0.25×–3×).
+- Move Car incremental nudges (+X, −X, +Z, −Z) or click ground.
+
+### 3D Viewer (`ThreeViewer`)
+
+Currently shows a procedural placeholder (torus knot). Replace with GLTF/GLB asset by swapping the `Placeholder` component.
+
+## Development Notes
+
+Hydration: All interactive simulations are client components (`"use client"`) or dynamically imported with `ssr: false` to avoid hydration mismatch from canvas / WebGL specifics.
+
+Styling: A custom animated-style grid background (`.bg-grid`) uses layered gradients (dots + vertical + horizontal lines). If only horizontal lines appear in older browsers, the updated CSS adds explicit vertical grid lines.
+
+## Next Improvements (Ideas)
+
+- Real path planner (A*/RRT) with obstacle map
+- Probabilistic sensor noise + localization uncertainty ellipse
+- Import actual robot + EV geometry
+- Charging efficiency heatmap visualization
+
+## Scripts
+
+Common scripts:
+
+```bash
+npm run dev     # start dev server
+npm run build   # production build
+npm start       # run built app
+npm run lint    # lint
+```
+
+## License
+
+Internal / Academic use – add a formal license if distributing.

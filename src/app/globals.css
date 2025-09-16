@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Theme tokens (Tailwind v4 CSS-first) */
+@theme {
+  --color-bg: #0a0f14;
+  --color-surface: rgba(255, 255, 255, 0.06);
+  --color-surface-2: rgba(255, 255, 255, 0.09);
+  --color-card-stroke: rgba(255, 255, 255, 0.12);
+  --color-text: #eaf6ff;
+  --color-dim: #b9d6f2;
+
+  --color-neon-blue: #39b7ff;
+  --color-neon-green: #00ffa3;
+  --color-danger: #ff6b6b;
+
+  --shadow-glow: 0 0 24px rgba(57, 183, 255, 0.35);
+  --shadow-glowg: 0 0 24px rgba(0, 255, 163, 0.35);
+  --shadow-elev: 0 10px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --font-sans: ui-sans-serif, system-ui, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Light mode (optional switch via class or data attribute) */
+@custom-variant light (&:where(:root[data-theme="light"], :root.light, :root[data-mode="light"]));
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not([data-theme="dark"]) {
+    --color-bg: #ffffff;
+    --color-surface: rgba(10, 15, 20, 0.05);
+    --color-surface-2: rgba(10, 15, 20, 0.08);
+    --color-card-stroke: rgba(10, 15, 20, 0.12);
+    --color-text: #0e141b;
+    --color-dim: #2c3a46;
   }
 }
 
+/* Motion safety */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Base */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-neon-blue) 35%, transparent);
+}
+
+/* Subtle grid with dots and orthogonal lines */
+.bg-grid {
+  background-image:
+    radial-gradient(
+      circle at 25% 25%,
+      color-mix(in srgb, var(--color-neon-blue) 12%, transparent) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, #ffffff 6%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, #ffffff 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 1200px 1200px, 26px 26px, 26px 26px;
+  background-position: center, 0 0, 0 0;
+  position: relative;
+}
+
+.bg-grid::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(10,15,20,0.0), rgba(10,15,20,0.55) 70%),
+    radial-gradient(ellipse at top, rgba(10,15,20,0.55), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(10,15,20,0.75), transparent 62%);
+}
+
+/* Card styles: pop + lift */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-card-stroke);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elev);
+  backdrop-filter: blur(4px);
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elev), var(--shadow-glow);
+  border-color: color-mix(in srgb, var(--color-neon-blue) 40%, var(--color-card-stroke));
+}
+
+/* Helper classes for tokens */
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.text-dim {
+  color: var(--color-dim);
+}
+
+/* Hero overlay gradient */
+.hero-overlay {
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-bg) 92%, transparent),
+    color-mix(in srgb, var(--color-bg) 45%, transparent)
+  );
+}
+
+/* Smooth scroll (motion-safe handled above) */
+html {
+  scroll-behavior: smooth;
+}
+
+/* --- Hero enhancers --- */
+.glass {
+  background: color-mix(in srgb, var(--color-surface) 100%, transparent);
+  border: 1px solid var(--color-card-stroke);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(6px);
+}
+
+@keyframes float-y {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.orb {
+  position: absolute;
+  filter: blur(40px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.orb-blue { background: radial-gradient(circle, #39b7ff 0%, transparent 60%); }
+.orb-green { background: radial-gradient(circle, #00ffa3 0%, transparent 60%); }
+
+.scroll-cue {
+  width: 22px;
+  height: 36px;
+  border: 2px solid color-mix(in srgb, var(--color-neon-blue) 70%, white);
+  border-radius: 14px;
+  position: relative;
+  opacity: 0.8;
+}
+.scroll-cue::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 4px;
+  height: 8px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--color-neon-blue) 80%, white);
+  animation: cue 1.8s ease-in-out infinite;
+}
+@keyframes cue {
+  0%, 100% { transform: translate(-50%, 0); opacity: 0.9; }
+  50% { transform: translate(-50%, 10px); opacity: 0.3; }
 }
