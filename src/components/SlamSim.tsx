@@ -10,6 +10,10 @@ function clamp(v: number, a: number, b: number) {
 
 export default function SlamSim() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const BASE_W = 520;
+  const BASE_H = 320;
+  const lastCssSize = useRef({ w: 0, h: 0 });
+  const lastDpr = useRef(0);
   const [robot, setRobot] = useState<Pt>({ x: 60, y: 160 });
   const [target, setTarget] = useState<Pt>({ x: 360, y: 140 });
   const [obstacles, setObstacles] = useState<{ p: Pt; r: number }[]>([
@@ -61,12 +65,45 @@ export default function SlamSim() {
     const ctx = cvs.getContext("2d");
     if (!ctx) return;
 
+    let resizeScheduled = false;
+    const doResize = () => {
+      resizeScheduled = false;
+      const container = cvs.parentElement || cvs;
+      const rect = container.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cssW = Math.floor(rect.width);
+      const cssH = Math.floor(rect.height);
+      const changed = cssW !== lastCssSize.current.w || cssH !== lastCssSize.current.h || dpr !== lastDpr.current;
+      if (!changed) return;
+      lastCssSize.current = { w: cssW, h: cssH };
+      lastDpr.current = dpr;
+      const sx = cssW / BASE_W;
+      const sy = cssH / BASE_H;
+      const targetW = Math.max(1, Math.floor(cssW * dpr));
+      const targetH = Math.max(1, Math.floor(cssH * dpr));
+      if (cvs.width !== targetW) cvs.width = targetW;
+      if (cvs.height !== targetH) cvs.height = targetH;
+      ctx.setTransform(dpr * sx, 0, 0, dpr * sy, 0, 0);
+    };
+    const scheduleResize = () => {
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      requestAnimationFrame(doResize);
+    };
+    scheduleResize();
+    const ro = new ResizeObserver(scheduleResize);
+    const container = cvs.parentElement || cvs;
+    ro.observe(container);
+    const onWinResize = () => scheduleResize();
+    window.addEventListener("resize", onWinResize);
+
     let raf = 0;
     const render = () => {
       if (running) stepLogic();
 
-      const w = cvs.width;
-      const h = cvs.height;
+      const w = BASE_W;
+      const h = BASE_H;
       ctx.clearRect(0, 0, w, h);
 
       // Grid
@@ -138,13 +175,19 @@ export default function SlamSim() {
     };
 
     raf = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", onWinResize);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, speed, showRays, obstacles, robot, target, trail]);
 
   const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const sx = rect.width / BASE_W || 1;
+    const sy = rect.height / BASE_H || 1;
+    return { x: (e.clientX - rect.left) / sx, y: (e.clientY - rect.top) / sy };
   };
 
   return (
@@ -153,7 +196,7 @@ export default function SlamSim() {
         ref={ref}
         width={520}
         height={320}
-        className="mx-auto w-full rounded-md border border-white/10 bg-black/30"
+        className="mx-auto w-full rounded-md border border-white/10 bg-black/30 block"
         onMouseDown={(e) => {
           const p = toLocal(e);
           if (Math.hypot(p.x - robot.x, p.y - robot.y) < 14) setDrag({ type: "robot" });

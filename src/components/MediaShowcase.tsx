@@ -1,6 +1,6 @@
 export default function MediaShowcase() {
   return (
-    <section id="media" className="mx-auto max-w-6xl px-6 py-16 md:py-20">
+    <section id="media" className="mx-auto max-w-7xl px-6 py-16 md:py-20">
       <h2 className="mb-6 text-3xl font-semibold">Media Showcase</h2>
 
       <div className="grid gap-6 md:grid-cols-2">

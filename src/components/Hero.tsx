@@ -19,11 +19,11 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top_left,rgba(57,183,255,0.15),transparent_40%),radial-gradient(ellipse_at_bottom_right,rgba(0,255,163,0.12),transparent_45%)]">
-      {/* Dark overlay replacing video */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,15,20,0.9),rgba(10,15,20,0.6))]" />
+    <section className="relative overflow-hidden">
+      {/* Hero grid background scoped with radial fade */}
+      <div className="pointer-events-none absolute inset-0 z-0 hero-grid bg-grid" style={{ animation: "float-y 10s ease-in-out infinite", position: "absolute" }} />
 
-      {/* Glowing gradient orbs for depth */}
+      {/* Glowing gradient orbs for depth (hero only) */}
       <div
         className="orb orb-blue -left-24 top-10 h-72 w-72"
         style={{ animation: "float-y 10s ease-in-out infinite" }}
@@ -33,7 +33,7 @@ export default function Hero() {
         style={{ animation: "float-y 12s ease-in-out infinite" }}
       />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-24 pb-16 md:pb-24">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-16 md:pb-24">
         <div className="grid items-center gap-10 md:grid-cols-2">
           {/* Left column: copy, chips, stats, ctas */}
           <div>
@@ -41,7 +41,7 @@ export default function Hero() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.7 }}
-              className="text-4xl font-semibold tracking-tight md:text-6xl"
+              className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl xl:text-7xl"
             >
               Redefining EV Charging
               <span className="block text-[color:var(--color-neon-green)] drop-shadow-[0_0_12px_#00ffa399]">
@@ -135,7 +135,7 @@ export default function Hero() {
                 </svg>
               </button>
             </div>
-            <div className="flex items-center justify-between p-4">
+            <div className="flex flex-col items-start justify-between gap-3 p-4 sm:flex-row sm:items-center">
               <div>
                 <h3 className="font-medium">Autonomous Docking Demo</h3>
                 <p className="text-sm text-dim">See the robot align and charge.</p>

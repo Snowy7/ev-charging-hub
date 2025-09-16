@@ -18,7 +18,7 @@ export default function Interactive() {
   return (
     <section
       id="interactive"
-      className="mx-auto max-w-6xl px-6 py-16 md:py-24"
+      className="mx-auto max-w-7xl px-6 py-16 md:py-24"
     >
       <motion.h2
         initial={{ opacity: 0, y: 10 }}

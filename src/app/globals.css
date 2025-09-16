@@ -87,11 +87,16 @@ body {
   position: relative;
 }
 
-.bg-grid::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
+/* Radial fade mask for the hero's grid background */
+.hero-grid {
+  -webkit-mask-image: radial-gradient(ellipse at 50% 42%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 68%);
+  mask-image: radial-gradient(ellipse at 50% 42%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 68%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Dark overlay that can be applied selectively (not on hero) */
+.grid-overlay {
   background:
     radial-gradient(circle at 50% 30%, rgba(10,15,20,0.0), rgba(10,15,20,0.55) 70%),
     radial-gradient(ellipse at top, rgba(10,15,20,0.55), transparent 60%),

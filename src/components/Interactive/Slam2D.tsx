@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 type Pt = { x: number; y: number };
 type Circle = { c: Pt; r: number };
-type Step = "idle" | "anchors" | "slam" | "docking" | "charging";
+type Step = "idle" | "anchors" | "planning" | "slam" | "docking" | "charging";
 
 function len(a: Pt, b: Pt) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -38,24 +38,94 @@ function rayCircle(origin: Pt, dir: Pt, circle: Circle): number | null {
 
 export default function Slam2D() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const dprRef = useRef(1);
+  const BASE_W = 520;
+  const BASE_H = 340;
+  const TARGET_CLEAR_PX = 34;
+  const lastCssSize = useRef({ w: 0, h: 0 });
+  const lastDpr = useRef(0);
   const [robot, setRobot] = useState<Pt>({ x: 60, y: 180 });
   const [car, setCar] = useState<Pt>({ x: 420, y: 160 });
   // charging port on left side of car: offset -30 px on x
   const carPort = { x: car.x - 30, y: car.y };
 
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const [isEdit, setIsEdit] = useState(true);
   const [speed, setSpeed] = useState(1.0);
   const [showRays, setShowRays] = useState(true);
   const [trail, setTrail] = useState<Pt[]>([]);
   const [obstacles, setObstacles] = useState<Circle[]>([
-    { c: { x: 170, y: 140 }, r: 14 },
-    { c: { x: 250, y: 180 }, r: 16 },
-    { c: { x: 320, y: 120 }, r: 14 },
+    { c: { x: 160, y: 120 }, r: 14 },
+    { c: { x: 230, y: 200 }, r: 16 },
+    { c: { x: 300, y: 100 }, r: 14 },
+    { c: { x: 120, y: 220 }, r: 15 },
+    { c: { x: 380, y: 200 }, r: 16 },
   ]);
 
   // multi‑step process state
   const [step, setStep] = useState<Step>("anchors");
   const [chargeProgress, setChargeProgress] = useState(0); // 0..1
+
+  // anchors → signal → reveal line → predicted path
+  const bothHitRef = useRef(false);
+  const signalStartRef = useRef(0);
+  const signalTRef = useRef(0); // 0..1 from car→robot
+  const signalReceivedRef = useRef(false);
+  const signalGlowUntilRef = useRef(0);
+  const lineFormStartRef = useRef(0);
+  const lineFormTRef = useRef(0); // 0..1
+  const anchorsFadeUntilRef = useRef(0);
+  const prevStepRef = useRef<Step>("anchors");
+  const planningStartRef = useRef(0);
+  const scanningStartRef = useRef(0);
+  const dragRef = useRef<null | { type: "robot" | "car" | "obstacle"; idx?: number }>(null);
+  const toLocal = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = (e.currentTarget as HTMLCanvasElement).getBoundingClientRect();
+    const sx = rect.width / BASE_W || 1;
+    const sy = rect.height / BASE_H || 1;
+    return { x: (e.clientX - rect.left) / sx, y: (e.clientY - rect.top) / sy };
+  };
+
+  function enforceTargetClear(center: Pt, radius: number): Pt {
+    const v = { x: center.x - carPort.x, y: center.y - carPort.y };
+    const d = Math.hypot(v.x, v.y);
+    const minD = radius + TARGET_CLEAR_PX;
+    if (d < minD) {
+      const s = minD / (d || 1);
+      return {
+        x: clamp(carPort.x + v.x * s, 10 + radius, BASE_W - 10 - radius),
+        y: clamp(carPort.y + v.y * s, 10 + radius, BASE_H - 10 - radius),
+      };
+    }
+    return {
+      x: clamp(center.x, 10 + radius, BASE_W - 10 - radius),
+      y: clamp(center.y, 10 + radius, BASE_H - 10 - radius),
+    };
+  }
+
+  function resetVisuals() {
+    bothHitRef.current = false;
+    signalStartRef.current = 0;
+    signalTRef.current = 0;
+    signalReceivedRef.current = false;
+    signalGlowUntilRef.current = 0;
+    lineFormStartRef.current = 0;
+    lineFormTRef.current = 0;
+    anchorsFadeUntilRef.current = 0;
+  }
+
+  useEffect(() => {
+    // smooth fade of anchors overlay when leaving anchors
+    if (prevStepRef.current === "anchors" && step !== "anchors") {
+      anchorsFadeUntilRef.current = performance.now() + 900;
+    }
+    // reset transient visuals when (re)entering anchors
+    if (step === "anchors") {
+      resetVisuals();
+      scanningStartRef.current = performance.now();
+    }
+    prevStepRef.current = step;
+  }, [step]);
 
   // path following with obstacle repulsion
   function stepLogic(dt: number) {
@@ -75,8 +145,19 @@ export default function Slam2D() {
         },
         { x: 0, y: 0 }
       );
-      const slamSpeed = step === "slam" ? 60 * speed : 30 * speed;
-      const v = add(mul(toTarget, slamSpeed), mul(repel, 90 * speed));
+      // bias towards the target when near it to prevent getting stuck behind obstacles
+      const toPort = sub(carPort, robot);
+      const distToPortNow = Math.hypot(toPort.x, toPort.y);
+      const nearRadius = TARGET_CLEAR_PX + 16;
+      let bias = { x: 0, y: 0 };
+      if (distToPortNow < nearRadius + 40) {
+        const towards = norm(toPort);
+        const t = Math.max(0, Math.min(1, (nearRadius + 40 - distToPortNow) / 40));
+        bias = mul(towards, 20 * t);
+      }
+
+      const slamSpeed = step === "slam" ? 48 * speed : 26 * speed; // slightly slower
+      const v = add(add(mul(toTarget, slamSpeed), mul(repel, 90 * speed)), bias);
       const next = add(robot, mul(v, dt));
       setRobot({ x: clamp(next.x, 10, 510), y: clamp(next.y, 10, 310) });
       setTrail((t) => {
@@ -92,7 +173,7 @@ export default function Slam2D() {
         setChargeProgress(0);
       }
     } else if (step === "charging") {
-      setChargeProgress((p) => Math.min(1, p + dt * 0.15));
+      setChargeProgress((p) => Math.min(1, p + dt * 0.12)); // slower fill
     }
   }
 
@@ -102,6 +183,40 @@ export default function Slam2D() {
     if (!cvs) return;
     const ctx = cvs.getContext("2d");
     if (!ctx) return;
+
+    let resizeScheduled = false;
+    const doResize = () => {
+      resizeScheduled = false;
+      const container = cvs.parentElement || cvs;
+      const rect = container.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return; // avoid collapsing to 0 during layout/tabs
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cssW = Math.floor(rect.width);
+      const cssH = Math.floor(rect.height);
+      const changed = cssW !== lastCssSize.current.w || cssH !== lastCssSize.current.h || dpr !== lastDpr.current;
+      if (!changed) return;
+      lastCssSize.current = { w: cssW, h: cssH };
+      lastDpr.current = dpr;
+      dprRef.current = dpr;
+      const sx = cssW / BASE_W;
+      const sy = cssH / BASE_H;
+      const targetW = Math.max(1, Math.floor(cssW * dpr));
+      const targetH = Math.max(1, Math.floor(cssH * dpr));
+      if (cvs.width !== targetW) cvs.width = targetW;
+      if (cvs.height !== targetH) cvs.height = targetH;
+      ctx.setTransform(dpr * sx, 0, 0, dpr * sy, 0, 0);
+    };
+    const scheduleResize = () => {
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      requestAnimationFrame(doResize);
+    };
+    scheduleResize();
+    const ro = new ResizeObserver(scheduleResize);
+    const container = cvs.parentElement || cvs;
+    ro.observe(container);
+    const onWinResize = () => scheduleResize();
+    window.addEventListener("resize", onWinResize);
 
     let last = performance.now();
     let raf = 0;
@@ -113,12 +228,12 @@ export default function Slam2D() {
       if (playing) stepLogic(dt);
 
       // clear
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      ctx.clearRect(0, 0, BASE_W, BASE_H);
 
       // grid
       ctx.fillStyle = "rgba(255,255,255,0.06)";
-      for (let x = 0; x <= cvs.width; x += 20) ctx.fillRect(x, 0, 1, cvs.height);
-      for (let y = 0; y <= cvs.height; y += 20) ctx.fillRect(0, y, cvs.width, 1);
+      for (let x = 0; x <= BASE_W; x += 20) ctx.fillRect(x, 0, 1, BASE_H);
+      for (let y = 0; y <= BASE_H; y += 20) ctx.fillRect(0, y, BASE_W, 1);
 
       const anchors: Pt[] = [
         { x: 20, y: 20 },
@@ -127,52 +242,183 @@ export default function Slam2D() {
         { x: 500, y: 300 },
       ];
 
-      // Step: Anchors localization visuals
-      if (step === "anchors") {
-        const t = (now / 1000) % 2.2;
-        const pulseR = (t / 2.2) * 360 + 8;
+      // Step: Anchors localization visuals (with fade out)
+      const anchorsFadeMs = 900;
+      const anchorsActive = step === "anchors" || now < anchorsFadeUntilRef.current;
+      if (anchorsActive) {
+        const cycle = 3.2; // slower, clearer
+        const tcyc = (now / 1000) % cycle;
+        const pulseR = (tcyc / cycle) * 360 + 8;
+        const alpha = step === "anchors" ? 1 : Math.max(0, Math.min(1, (anchorsFadeUntilRef.current - now) / anchorsFadeMs));
+        ctx.save();
+        ctx.globalAlpha *= alpha;
+
+        // draw anchors as points
         anchors.forEach((a) => {
-          // base pulse
-          ctx.strokeStyle = "rgba(57,183,255,0.25)";
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
           ctx.beginPath();
-          ctx.arc(a.x, a.y, pulseR, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // trilateration to robot: dashed radius = distance
-          const dR = len(a, robot);
-          ctx.setLineDash([6, 6]);
-          ctx.strokeStyle = "rgba(57,183,255,0.35)";
-          ctx.beginPath();
-          ctx.arc(a.x, a.y, dR, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // trilateration to car: green
-          const dC = len(a, car);
-          ctx.strokeStyle = "rgba(0,255,163,0.3)";
-          ctx.beginPath();
-          ctx.arc(a.x, a.y, dC, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // signal lines to robot and car
-          ctx.strokeStyle = "rgba(255,255,255,0.06)";
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(robot.x, robot.y);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(car.x, car.y);
-          ctx.stroke();
+          ctx.arc(a.x, a.y, 3, 0, Math.PI * 2);
+          ctx.fill();
         });
 
-        // ghost markers: estimated pose/icons
-        ctx.fillStyle = "rgba(57,183,255,0.35)";
+        let hitRobot = false;
+        let hitCar = false;
+
+        const scanningAllowed = !isEdit;
+        if (scanningAllowed) {
+          anchors.forEach((a) => {
+            // base pulse
+            ctx.strokeStyle = "rgba(57,183,255,0.25)";
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, pulseR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // trilateration to robot: dashed radius = distance
+            const dR = len(a, robot);
+            ctx.setLineDash([6, 6]);
+            ctx.strokeStyle = "rgba(57,183,255,0.35)";
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, dR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // trilateration to car: green
+            const dC = len(a, car);
+            ctx.strokeStyle = "rgba(0,255,163,0.3)";
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, dC, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // signal lines to robot and car
+            ctx.strokeStyle = "rgba(255,255,255,0.06)";
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(robot.x, robot.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(car.x, car.y);
+            ctx.stroke();
+
+            // detect pulse touching robot/car
+            if (Math.abs(pulseR - dR) < 3) hitRobot = true;
+            if (Math.abs(pulseR - dC) < 3) hitCar = true;
+          });
+        }
+
+        // glow both when pulse reaches both (ensure min scan time)
+        const minScanMs = 1800; // ensure we actually scan a bit
+        if (!isEdit && hitRobot && hitCar && !bothHitRef.current && now - scanningStartRef.current >= minScanMs) {
+          bothHitRef.current = true;
+          signalStartRef.current = now;
+        }
+
+        // neutral glow color (distinct from blue/green)
+        const glowColor = "rgba(255,200,60,0.45)";
+        if (hitRobot) {
+          ctx.strokeStyle = glowColor;
+          ctx.beginPath();
+          ctx.arc(robot.x, robot.y, 14, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        if (hitCar) {
+          ctx.strokeStyle = glowColor;
+          ctx.strokeRect(car.x - 22, car.y - 14, 44, 28);
+        }
+
+        // animate signal from car → robot once both are hit (slower)
+        if (!isEdit && bothHitRef.current && !signalReceivedRef.current) {
+          const dur = 1400; // ms
+          const tt = Math.min(1, (now - signalStartRef.current) / dur);
+          signalTRef.current = tt;
+          const dx = robot.x - carPort.x;
+          const dy = robot.y - carPort.y;
+          const sx = carPort.x + dx * tt;
+          const sy = carPort.y + dy * tt;
+          ctx.fillStyle = "rgba(255,200,60,0.9)";
+          ctx.beginPath();
+          ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+          ctx.fill();
+          if (tt >= 1) {
+            signalReceivedRef.current = true;
+            signalGlowUntilRef.current = now + 900;
+            lineFormStartRef.current = now;
+            lineFormTRef.current = 0;
+            planningStartRef.current = now;
+            setStep("planning");
+          }
+        }
+
+        // robot glow on receive
+        if (!isEdit && signalReceivedRef.current && now < signalGlowUntilRef.current) {
+          ctx.strokeStyle = "rgba(255,200,60,0.6)";
+          ctx.beginPath();
+          ctx.arc(robot.x, robot.y, 16, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // No line reveal during anchors; handled in planning
+
+        ctx.restore();
+      }
+
+      // Planning: reveal lines over ~1s, robot stays idle
+      if (!isEdit && step === "planning") {
+        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+        const dur = 1000;
+        const tForm = easeOutCubic(Math.min(1, (now - planningStartRef.current) / dur));
+        lineFormTRef.current = tForm;
+
+        const dx = carPort.x - robot.x;
+        const dy = carPort.y - robot.y;
+        const px = robot.x + dx * tForm;
+        const py = robot.y + dy * tForm;
+        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = "rgba(57,183,255,0.7)";
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(robot.x, robot.y, 10, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "rgba(0,255,163,0.25)";
-        ctx.fillRect(car.x - 20, car.y - 12, 40, 24);
+        ctx.moveTo(robot.x, robot.y);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // predicted path with fade-in
+        ctx.save();
+        ctx.globalAlpha *= tForm;
+        const maxSteps = 160;
+        const stepLen = 3.5;
+        const pts: Pt[] = [{ x: robot.x, y: robot.y }];
+        let p = { x: robot.x, y: robot.y };
+        for (let i = 0; i < maxSteps; i++) {
+          const toTarget = norm(sub(carPort, p));
+          const repel = obstacles.reduce(
+            (acc, o) => {
+              const d = Math.hypot(p.x - o.c.x, p.y - o.c.y);
+              const rad = o.r + 26;
+              if (d < rad && d > 0) {
+                const dir = norm(sub(p, o.c));
+                const k = (rad - d) / rad;
+                return add(acc, mul(dir, k * 1.4));
+              }
+              return acc;
+            },
+            { x: 0, y: 0 }
+          );
+          const v = add(mul(toTarget, stepLen), mul(repel, 60 * (1 / 30)));
+          const next = add(p, v);
+          pts.push(next);
+          p = next;
+          if (len(p, carPort) < 10) break;
+        }
+        ctx.strokeStyle = "rgba(0,255,163,0.85)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        ctx.restore();
+
+        if (now - planningStartRef.current >= dur + 200) setStep("slam");
       }
 
       // trail
@@ -194,7 +440,7 @@ export default function Slam2D() {
       });
 
       // guidance line to car side port (only when navigating)
-      if (step === "slam" || step === "docking") {
+      if (!isEdit && (step === "slam" || step === "docking" || (step === "anchors" && signalReceivedRef.current))) {
         ctx.setLineDash([6, 6]);
         ctx.strokeStyle = "rgba(57,183,255,0.6)";
         ctx.lineWidth = 1;
@@ -203,6 +449,44 @@ export default function Slam2D() {
         ctx.lineTo(carPort.x, carPort.y);
         ctx.stroke();
         ctx.setLineDash([]);
+      }
+
+      // Predicted path (curved, obstacle-aware) overlay
+      const drawPredictedPath = () => {
+        const maxSteps = 160;
+        const stepLen = 3.5; // pixels per step
+        const pts: Pt[] = [{ x: robot.x, y: robot.y }];
+        let p = { x: robot.x, y: robot.y };
+        for (let i = 0; i < maxSteps; i++) {
+          const toTarget = norm(sub(carPort, p));
+          const repel = obstacles.reduce(
+            (acc, o) => {
+              const d = Math.hypot(p.x - o.c.x, p.y - o.c.y);
+              const rad = o.r + 26;
+              if (d < rad && d > 0) {
+                const dir = norm(sub(p, o.c));
+                const k = (rad - d) / rad;
+                return add(acc, mul(dir, k * 1.4));
+              }
+              return acc;
+            },
+            { x: 0, y: 0 }
+          );
+          const v = add(mul(toTarget, stepLen), mul(repel, 60 * (1 / 30)));
+          const next = add(p, v);
+          pts.push(next);
+          p = next;
+          if (len(p, carPort) < 10) break;
+        }
+        ctx.strokeStyle = "rgba(0,255,163,0.7)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+      };
+      if (!isEdit && (step === "slam" || step === "docking" || step === "planning")) {
+        drawPredictedPath();
       }
 
       // LiDAR rays truncated
@@ -321,36 +605,133 @@ export default function Slam2D() {
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", onWinResize);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, speed, obstacles, robot, car, step, showRays, chargeProgress]);
 
-  // timed transition: Anchors → SLAM
-  useEffect(() => {
-    if (!playing) return;
-    if (step !== "anchors") return;
-    const id = setTimeout(() => setStep("slam"), 2200);
-    return () => clearTimeout(id);
-  }, [step, playing]);
+  // remove auto-transition; controlled by planning step
 
   return (
     <div className="flex flex-col gap-3">
       <div className="w-full overflow-hidden rounded-md border border-white/10 bg-black/30">
-        <canvas ref={ref} width={520} height={340} className="w-full" />
+        <canvas
+          ref={ref}
+          width={520}
+          height={340}
+          className="w-full block"
+          onMouseDown={(e) => {
+            if (!isEdit) return;
+            const p = toLocal(e);
+            // check robot
+            if (Math.hypot(p.x - robot.x, p.y - robot.y) < 14) {
+              dragRef.current = { type: "robot" };
+              return;
+            }
+            // check car (approx box)
+            if (p.x >= car.x - 18 && p.x <= car.x + 18 && p.y >= car.y - 10 && p.y <= car.y + 10) {
+              dragRef.current = { type: "car" };
+              return;
+            }
+            // check obstacles
+            let idx = -1;
+            let best = Infinity;
+            obstacles.forEach((o, i) => {
+              const d = Math.hypot(o.c.x - p.x, o.c.y - p.y);
+              if (d < best && d <= o.r + 6) {
+                best = d; idx = i;
+              }
+            });
+            if (idx >= 0) dragRef.current = { type: "obstacle", idx };
+          }}
+          onMouseMove={(e) => {
+            if (!isEdit) return;
+            const drag = dragRef.current;
+            if (!drag) return;
+            const p = toLocal(e);
+            if (drag.type === "robot") setRobot({ x: clamp(p.x, 10, BASE_W - 10), y: clamp(p.y, 10, BASE_H - 10) });
+            else if (drag.type === "car") {
+              const nx = clamp(p.x, 40, BASE_W - 40);
+              const ny = clamp(p.y, 20, BASE_H - 20);
+              setCar({ x: nx, y: ny });
+            } else if (drag.type === "obstacle" && drag.idx !== undefined) {
+              const idx = drag.idx;
+              setObstacles((obs) => obs.map((o, i) => {
+                if (i !== idx) return o;
+                const next = enforceTargetClear({ x: p.x, y: p.y }, o.r);
+                return { ...o, c: next };
+              }));
+            }
+          }}
+          onMouseUp={() => { dragRef.current = null; }}
+          onMouseLeave={() => { dragRef.current = null; }}
+          onDoubleClick={(e) => {
+            if (!isEdit) return;
+            const p = toLocal(e);
+            setObstacles((obs) => {
+              if (obs.length >= 8) return obs; // limit
+              const r = 12 + Math.round(Math.random() * 8);
+              const c = enforceTargetClear({ x: p.x, y: p.y }, r);
+              return [...obs, { c, r }];
+            });
+          }}
+          onContextMenu={(e) => {
+            if (!isEdit) return;
+            e.preventDefault();
+            const p = toLocal(e);
+            let idx = -1;
+            let best = Infinity;
+            obstacles.forEach((o, i) => {
+              const d = Math.hypot(o.c.x - p.x, o.c.y - p.y);
+              if (d < best) { best = d; idx = i; }
+            });
+            if (idx >= 0) setObstacles((obs) => obs.filter((_, i) => i !== idx));
+          }}
+        />
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button
-          onClick={() => setPlaying((v) => !v)}
-          className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+          onClick={() => {
+            setIsEdit((e) => !e);
+            if (isEdit) {
+              // switching to run: start from anchors scanning
+              setStep("anchors");
+              setPlaying(true);
+              scanningStartRef.current = performance.now();
+            } else {
+              // switching to edit: pause and reset transient visuals
+              setPlaying(false);
+              resetVisuals();
+              bothHitRef.current = false;
+              signalReceivedRef.current = false;
+            }
+          }}
+          className={`rounded-md px-3 py-1.5 text-sm ${isEdit ? "bg-white/10 hover:bg-white/15" : "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"}`}
         >
-          {playing ? "Pause" : "Play"}
+          {isEdit ? "Enter Run" : "Enter Edit"}
         </button>
+        {!isEdit && (
+          <button
+            onClick={() => setPlaying((v) => !v)}
+            className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+          >
+            {playing ? "Pause" : "Play"}
+          </button>
+        )}
         <button
           onClick={() => {
             setTrail([]);
             setRobot({ x: 60, y: 180 });
             setStep("anchors");
             setChargeProgress(0);
+            resetVisuals();
+            bothHitRef.current = false;
+            signalReceivedRef.current = false;
+            setPlaying(false);
+            setIsEdit(true);
           }}
           className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
         >
@@ -374,15 +755,19 @@ export default function Slam2D() {
             </button>
           ))}
         </div>
-        <label className="ml-2 text-xs text-white/70">Speed</label>
-        <input
-          type="range"
-          min={0.4}
-          max={2}
-          step={0.1}
-          value={speed}
-          onChange={(e) => setSpeed(parseFloat(e.target.value))}
-        />
+        {!isEdit && (
+          <>
+            <label className="ml-2 text-xs text-white/70">Speed</label>
+            <input
+              type="range"
+              min={0.4}
+              max={2}
+              step={0.1}
+              value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+            />
+          </>
+        )}
         <label className="ml-2 flex items-center gap-2 text-xs text-white/70">
           <input
             type="checkbox"
@@ -392,7 +777,7 @@ export default function Slam2D() {
           Show LiDAR
         </label>
         <span className="ml-auto text-xs text-white/60">
-          Steps: Anchors → SLAM → Magnetic Docking → Charging
+          {isEdit ? "Edit mode: drag robot/car; right-click to remove obstacle, double-click to add." : "Steps: Anchors → Planning → SLAM → Magnetic Docking → Charging"}
         </span>
       </div>
     </div>

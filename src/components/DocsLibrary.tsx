@@ -48,7 +48,7 @@ export default function DocsLibrary() {
   }, [q, f]);
 
   return (
-    <section id="docs" className="mx-auto max-w-6xl px-6 py-16 md:py-20">
+    <section id="docs" className="mx-auto max-w-7xl px-6 py-16 md:py-20">
       <h2 className="mb-6 text-3xl font-semibold">Documents Library</h2>
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -75,7 +75,7 @@ export default function DocsLibrary() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((d) => (
           <a
             key={d.id}
