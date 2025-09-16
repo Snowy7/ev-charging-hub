@@ -14,6 +14,42 @@ const OBSTACLES: { c: THREE.Vector3; s: number }[] = [
   { c: new THREE.Vector3(1.2, 0.4, -2.0), s: 1.1 },
   { c: new THREE.Vector3(-1.8, 0.4, 2.1), s: 1.1 },
 ];
+
+// Helper: segment vs AABB (XZ plane)
+function segmentIntersectsAABBXZ(p0: THREE.Vector3, p1: THREE.Vector3, min: THREE.Vector3, max: THREE.Vector3): boolean {
+  let t0 = 0;
+  let t1 = 1;
+  const dx = p1.x - p0.x;
+  const dz = p1.z - p0.z;
+
+  // X slabs
+  if (Math.abs(dx) < 1e-6) {
+    if (p0.x < min.x || p0.x > max.x) return false;
+  } else {
+    const inv = 1 / dx;
+    let tNear = (min.x - p0.x) * inv;
+    let tFar = (max.x - p0.x) * inv;
+    if (tNear > tFar) [tNear, tFar] = [tFar, tNear];
+    t0 = Math.max(t0, tNear);
+    t1 = Math.min(t1, tFar);
+    if (t1 < t0) return false;
+  }
+
+  // Z slabs
+  if (Math.abs(dz) < 1e-6) {
+    if (p0.z < min.z || p0.z > max.z) return false;
+  } else {
+    const inv = 1 / dz;
+    let tNear = (min.z - p0.z) * inv;
+    let tFar = (max.z - p0.z) * inv;
+    if (tNear > tFar) [tNear, tFar] = [tFar, tNear];
+    t0 = Math.max(t0, tNear);
+    t1 = Math.min(t1, tFar);
+    if (t1 < t0) return false;
+  }
+
+  return t1 >= 0 && t0 <= 1;
+}
 // Primitive shapes (no external models)
 function Car() {
   return (
@@ -388,13 +424,40 @@ function MainScene({ topDown, showRays }: { topDown: boolean; showRays: boolean 
     if (!playing) return;
     if (step === "navigating" || step === "docking") {
       const dockTarget = carPos.clone().add(sideOffset);
-      const target = step === "navigating" ? path[Math.min(24, path.length - 1)] : dockTarget;
-      const toTarget = target.clone().sub(robotPos).setY(0);
+      const desired = step === "navigating" ? path[Math.min(24, path.length - 1)] : dockTarget;
+      const toTarget = desired.clone().sub(robotPos).setY(0);
       const d = toTarget.length();
+
+      // If direct segment intersects any obstacle AABB, push a detour along the axis of least penetration
+      let detour = new THREE.Vector3();
+      for (const { c, s } of obstacles) {
+        const half = s / 2;
+        const min = new THREE.Vector3(c.x - half, -Infinity, c.z - half);
+        const max = new THREE.Vector3(c.x + half, Infinity, c.z + half);
+        if (segmentIntersectsAABBXZ(robotPos, desired, min, max)) {
+          // choose axis to sidestep based on which side has more clearance
+          const left = new THREE.Vector3(-toTarget.z, 0, toTarget.x).normalize();
+          const right = left.clone().multiplyScalar(-1);
+          const leftProbe = robotPos.clone().add(left.clone().multiplyScalar(0.8));
+          const rightProbe = robotPos.clone().add(right.clone().multiplyScalar(0.8));
+          const collides = (p: THREE.Vector3) =>
+            obstacles.some(({ c: cc, s: ss }) => {
+              const h = ss / 2;
+              return (
+                p.x >= cc.x - h && p.x <= cc.x + h && p.z >= cc.z - h && p.z <= cc.z + h
+              );
+            });
+          if (!collides(leftProbe) && collides(rightProbe)) detour = left.multiplyScalar(1.2);
+          else if (!collides(rightProbe) && collides(leftProbe)) detour = right.multiplyScalar(1.2);
+          else detour = (Math.random() > 0.5 ? left : right).multiplyScalar(1.2);
+          break;
+        }
+      }
+
       if (d > 0.01) {
         toTarget.normalize();
 
-        // Obstacle avoidance force fields
+        // Obstacle avoidance force fields (kept, but lowered to avoid over-cancellation)
         const repel = new THREE.Vector3();
         const tangent = new THREE.Vector3();
         const up = new THREE.Vector3(0, 1, 0);
@@ -410,21 +473,22 @@ function MainScene({ topDown, showRays }: { topDown: boolean; showRays: boolean 
           );
           const away = p.clone().sub(closest).setY(0);
           const dist = Math.max(0.0001, away.length());
-          const influence = half + 1.1; // a bit larger
+          const influence = half + 0.9;
           if (dist < influence) {
             const falloff = (1 - dist / influence) ** 2;
             const awayDir = away.normalize();
-            repel.add(awayDir.clone().multiplyScalar(falloff * 2.0));
+            repel.add(awayDir.clone().multiplyScalar(falloff * 1.6));
             const left = awayDir.clone().applyAxisAngle(up, Math.PI / 2);
             const right = awayDir.clone().applyAxisAngle(up, -Math.PI / 2);
             const choose = left.dot(toTarget) > right.dot(toTarget) ? left : right;
-            tangent.add(choose.multiplyScalar(falloff * 1.4));
+            tangent.add(choose.multiplyScalar(falloff * 1.1));
           }
         });
 
         const v = toTarget
           .clone()
-          .multiplyScalar(step === "navigating" ? 1.4 : 0.6)
+          .multiplyScalar(step === "navigating" ? 1.2 : 0.55)
+          .add(detour)
           .add(repel)
           .add(tangent);
 

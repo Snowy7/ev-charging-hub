@@ -131,7 +131,10 @@ export default function Slam2D() {
   function stepLogic(dt: number) {
     if (step === "slam" || step === "docking") {
       const target = step === "slam" ? carPort : carPort;
-      const toTarget = norm(sub(target, robot));
+      const toTargetVec = sub(target, robot);
+      const toTarget = norm(toTargetVec);
+      const distToTarget = Math.hypot(toTargetVec.x, toTargetVec.y);
+
       const repel = obstacles.reduce(
         (acc, o) => {
           const d = len(robot, o.c);
@@ -145,6 +148,31 @@ export default function Slam2D() {
         },
         { x: 0, y: 0 }
       );
+      // Tangential steer to skirt around obstacles rather than stalling head-on
+      const tangent = obstacles.reduce(
+        (acc, o) => {
+          const away = sub(robot, o.c);
+          const d = Math.hypot(away.x, away.y);
+          const influence = o.r + 26;
+          if (d < influence && d > 0.0001) {
+            const falloff = (1 - d / influence) ** 2;
+            const awayDir = { x: away.x / d, y: away.y / d };
+            const left = { x: -awayDir.y, y: awayDir.x };
+            const right = { x: awayDir.y, y: -awayDir.x };
+            const choose = left.x * toTarget.x + left.y * toTarget.y > right.x * toTarget.x + right.y * toTarget.y ? left : right;
+            return add(acc, mul(choose, falloff * 1.4));
+          }
+          return acc;
+        },
+        { x: 0, y: 0 }
+      );
+
+      // Detect if straight line to target is blocked by any obstacle
+      const dirToTarget = distToTarget > 0 ? { x: toTargetVec.x / distToTarget, y: toTargetVec.y / distToTarget } : { x: 0, y: 0 };
+      const straightBlocked = obstacles.some((o) => {
+        const t = rayCircle(robot, dirToTarget, o);
+        return t !== null && t > 0 && t < distToTarget;
+      });
       // bias towards the target when near it to prevent getting stuck behind obstacles
       const toPort = sub(carPort, robot);
       const distToPortNow = Math.hypot(toPort.x, toPort.y);
@@ -157,7 +185,11 @@ export default function Slam2D() {
       }
 
       const slamSpeed = step === "slam" ? 48 * speed : 26 * speed; // slightly slower
-      const v = add(add(mul(toTarget, slamSpeed), mul(repel, 90 * speed)), bias);
+      const tangentWeight = straightBlocked ? 120 * speed : 60 * speed;
+      let v = add(add(add(mul(toTarget, slamSpeed), mul(repel, 90 * speed)), mul(tangent, tangentWeight)), bias);
+      // Nudge if nearly stalled
+      const vLen = Math.hypot(v.x, v.y);
+      if (vLen < 1e-3) v = add(v, mul(tangent, 30));
       const next = add(robot, mul(v, dt));
       setRobot({ x: clamp(next.x, 10, 510), y: clamp(next.y, 10, 310) });
       setTrail((t) => {
