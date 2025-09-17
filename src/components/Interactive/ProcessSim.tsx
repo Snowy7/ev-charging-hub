@@ -677,109 +677,118 @@ export default function ProcessSim() {
 
   return (
     <div className="relative">
-      <div className="h-[520px] w-full overflow-hidden rounded-md relative">
-        <Canvas
-          key={canvasKey}
-          shadows={{ type: THREE.PCFSoftShadowMap }}
-          dpr={[1, 1.75]}
-          gl={{ powerPreference: "high-performance", antialias: true }}
-          onCreated={(state) => {
-            const canvas = state.gl.domElement;
-            const onLost = (e: Event) => {
-              e.preventDefault();
-              setContextLost(true);
-            };
-            canvas.addEventListener("webglcontextlost", onLost, { passive: false } as AddEventListenerOptions);
-          }}
-        >
-          <Suspense fallback={null}>
-            <MainScene topDown={topDown} showRays={showRays} />
-          </Suspense>
-        </Canvas>
-        {contextLost && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
-            <div className="rounded-md border border-white/15 bg-black/60 p-4 text-sm">
-              <div className="mb-2 text-white/80">Graphics context was lost.</div>
-              <button
-                className="rounded-md bg-white/10 px-3 py-1.5 text-white/90 hover:bg-white/15"
-                onClick={() => {
-                  setContextLost(false);
-                  setCanvasKey((k) => k + 1);
-                }}
-              >
-                Restart 3D
-              </button>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Left: Simulation viewport, fixed height */}
+        <div className="h-[560px] w-full overflow-hidden rounded-md relative">
+          <Canvas
+            key={canvasKey}
+            shadows={{ type: THREE.PCFSoftShadowMap }}
+            dpr={[1, 1.75]}
+            gl={{ powerPreference: "high-performance", antialias: true }}
+            onCreated={(state) => {
+              const canvas = state.gl.domElement;
+              const onLost = (e: Event) => {
+                e.preventDefault();
+                setContextLost(true);
+              };
+              canvas.addEventListener("webglcontextlost", onLost, { passive: false } as AddEventListenerOptions);
+            }}
+          >
+            <Suspense fallback={null}>
+              <MainScene topDown={topDown} showRays={showRays} />
+            </Suspense>
+          </Canvas>
+          {contextLost && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+              <div className="rounded-md border border-white/15 bg-black/60 p-4 text-sm">
+                <div className="mb-2 text-white/80">Graphics context was lost.</div>
+                <button
+                  className="rounded-md bg-white/10 px-3 py-1.5 text-white/90 hover:bg-white/15"
+                  onClick={() => {
+                    setContextLost(false);
+                    setCanvasKey((k) => k + 1);
+                  }}
+                >
+                  Restart 3D
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Controls and status */}
+        <aside className="rounded-md border border-white/10 bg-black/30 p-3">
+          <div className="mb-2 text-sm font-medium text-white/90">Controls</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              onClick={() => (playing ? setPlaying(false) : start())}
+            >
+              {playing ? "Pause" : "Play"}
+            </button>
+            <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={stop}>
+              Stop
+            </button>
+            <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={() => setCanvasKey((k) => k + 1)}>
+              Restart 3D
+            </button>
+            <button
+              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              onClick={() => setTopDown((v) => !v)}
+            >
+              {topDown ? "Free View" : "Top‑down"}
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 text-xs text-white/70">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
+              Show LiDAR
+            </label>
+          </div>
+
+          <div className="mt-4">
+            <div className="mb-1 text-xs text-white/60">Quick Steps</div>
+            <div className="flex flex-wrap gap-2">
+              {(["scan", "navigating", "docking", "charging"] as Step[]).map((s) => (
+                <button
+                  key={s}
+                  className={`rounded-md px-3 py-1.5 text-xs ${
+                    step === s
+                      ? "bg-white/15 text-white"
+                      : "bg-white/5 text-white/70 hover:bg-white/10"
+                  }`}
+                  onClick={() => {
+                    setStep(s);
+                    setPlaying(true);
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+
+          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
+            <div className="mb-1 font-medium text-white/85">Status</div>
+            <div className="text-white/70">{`Step: ${step}`}</div>
+            <div className="mt-1 text-white/60">Scan → Navigate → Dock → Charge</div>
+          </div>
+
+          {step === "charging" && (
+            <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
+              Charging… Coils aligned. Energy transfer stabilized.
+            </div>
+          )}
+
+          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2">
+            <div className="mb-1 text-xs text-white/60">Mini‑map</div>
+            <div className="aspect-video overflow-hidden rounded">
+              <MiniMap />
+            </div>
+          </div>
+        </aside>
       </div>
-
-      <div className="pointer-events-none absolute right-3 top-3 w-56 overflow-hidden rounded-md border border-white/10 bg-black/40 shadow-[var(--shadow-glow)]">
-        <div className="pointer-events-auto aspect-video">
-          <MiniMap />
-        </div>
-        <div className="pointer-events-auto border-t border-white/10 px-2 py-1 text-center text-[10px] text-white/70">
-          Top‑down view
-        </div>
-      </div>
-
-      {step === "scan" && (
-        <div className="pointer-events-none absolute left-3 top-3 rounded-md border border-white/10 bg-black/50 px-2 py-1 text-xs text-white/80">
-          Anchors localization
-        </div>
-      )}
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
-          onClick={() => (playing ? setPlaying(false) : start())}
-        >
-          {playing ? "Pause" : "Play"}
-        </button>
-        <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={stop}>
-          Stop
-        </button>
-        <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={() => setCanvasKey((k) => k + 1)}>
-          Restart 3D
-        </button>
-        <button
-          className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
-          onClick={() => setTopDown((v) => !v)}
-        >
-          {topDown ? "Free View" : "Top‑down"}
-        </button>
-        <label className="ml-1 flex items-center gap-2 text-xs text-white/70">
-          <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
-          Show LiDAR
-        </label>
-
-        <div className="ml-2 flex gap-2">
-          {(["scan", "homing", "docking", "charging"] as Step[]).map((s) => (
-            <button
-              key={s}
-              className={`rounded-md px-3 py-1.5 text-sm ${
-                step === s
-                  ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"
-                  : "bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-              onClick={() => {
-                setStep(s);
-                setPlaying(true);
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        <div className="ml-auto text-xs text-white/70">Steps: Scan (SLAM) → UWB Homing → QR Docking → Charging</div>
-      </div>
-
-      {step === "charging" && (
-        <div className="mt-2 rounded-md border border-white/10 bg-black/30 p-2 text-xs text-white/80">
-          Charging… Coils aligned. Energy transfer stabilized.
-        </div>
-      )}
     </div>
   );
 }

@@ -27,7 +27,7 @@ export default function Interactive() {
         transition={{ duration: 0.6 }}
         className="mb-4 text-3xl font-semibold md:text-4xl"
       >
-        Interactive Demonstrations
+        Interactive Simulations
       </motion.h2>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -35,21 +35,21 @@ export default function Interactive() {
           onClick={() => setTab("process")}
           className={`rounded-md px-3 py-1.5 text-sm ${
             tab === "process"
-              ? "bg-[color:var(--color-neon-green)]/20 text-[color:var(--color-neon-green)] shadow-[var(--shadow-glowg)]"
+              ? "bg-[color:var(--color-neon-green)]/15 text-[color:var(--color-neon-green)] ring-1 ring-[color:var(--color-neon-green)]/30"
               : "bg-white/5 text-white/70 hover:bg-white/10"
           }`}
         >
-          3D Process
+          Autonomous Docking (3D)
         </button>
         <button
           onClick={() => setTab("slam")}
           className={`rounded-md px-3 py-1.5 text-sm ${
             tab === "slam"
-              ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"
+              ? "bg-[color:var(--color-neon-blue)]/15 text-[color:var(--color-neon-blue)] ring-1 ring-[color:var(--color-neon-blue)]/30"
               : "bg-white/5 text-white/70 hover:bg-white/10"
           }`}
         >
-          2D SLAM
+          SLAM Navigation (2D)
         </button>
       </div>
 

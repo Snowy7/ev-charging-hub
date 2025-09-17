@@ -648,14 +648,16 @@ export default function Slam2D() {
   // remove auto-transition; controlled by planning step
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="w-full overflow-hidden rounded-md border border-white/10 bg-black/30">
-        <canvas
-          ref={ref}
-          width={520}
-          height={340}
-          className="w-full block"
-          onMouseDown={(e) => {
+    <div className="relative">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Left: Simulation viewport */}
+        <div className="h-[560px] w-full overflow-hidden rounded-md border border-white/10 bg-black/30">
+          <canvas
+            ref={ref}
+            width={520}
+            height={340}
+            className="w-full block h-full"
+            onMouseDown={(e) => {
             if (!isEdit) return;
             const p = toLocal(e);
             // check robot
@@ -678,8 +680,8 @@ export default function Slam2D() {
               }
             });
             if (idx >= 0) dragRef.current = { type: "obstacle", idx };
-          }}
-          onMouseMove={(e) => {
+            }}
+            onMouseMove={(e) => {
             if (!isEdit) return;
             const drag = dragRef.current;
             if (!drag) return;
@@ -697,10 +699,10 @@ export default function Slam2D() {
                 return { ...o, c: next };
               }));
             }
-          }}
-          onMouseUp={() => { dragRef.current = null; }}
-          onMouseLeave={() => { dragRef.current = null; }}
-          onDoubleClick={(e) => {
+            }}
+            onMouseUp={() => { dragRef.current = null; }}
+            onMouseLeave={() => { dragRef.current = null; }}
+            onDoubleClick={(e) => {
             if (!isEdit) return;
             const p = toLocal(e);
             setObstacles((obs) => {
@@ -709,8 +711,8 @@ export default function Slam2D() {
               const c = enforceTargetClear({ x: p.x, y: p.y }, r);
               return [...obs, { c, r }];
             });
-          }}
-          onContextMenu={(e) => {
+            }}
+            onContextMenu={(e) => {
             if (!isEdit) return;
             e.preventDefault();
             const p = toLocal(e);
@@ -721,96 +723,105 @@ export default function Slam2D() {
               if (d < best) { best = d; idx = i; }
             });
             if (idx >= 0) setObstacles((obs) => obs.filter((_, i) => i !== idx));
-          }}
-        />
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={() => {
-            setIsEdit((e) => !e);
-            if (isEdit) {
-              // switching to run: start from anchors scanning
-              setStep("anchors");
-              setPlaying(true);
-              scanningStartRef.current = performance.now();
-            } else {
-              // switching to edit: pause and reset transient visuals
-              setPlaying(false);
-              resetVisuals();
-              bothHitRef.current = false;
-              signalReceivedRef.current = false;
-            }
-          }}
-          className={`rounded-md px-3 py-1.5 text-sm ${isEdit ? "bg-white/10 hover:bg-white/15" : "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"}`}
-        >
-          {isEdit ? "Enter Run" : "Enter Edit"}
-        </button>
-        {!isEdit && (
-          <button
-            onClick={() => setPlaying((v) => !v)}
-            className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
-          >
-            {playing ? "Pause" : "Play"}
-          </button>
-        )}
-        <button
-          onClick={() => {
-            setTrail([]);
-            setRobot({ x: 60, y: 180 });
-            setStep("anchors");
-            setChargeProgress(0);
-            resetVisuals();
-            bothHitRef.current = false;
-            signalReceivedRef.current = false;
-            setPlaying(false);
-            setIsEdit(true);
-          }}
-          className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
-        >
-          Reset Robot
-        </button>
-        <div className="ml-2 flex gap-2">
-          {(["anchors", "slam", "docking", "charging"] as Step[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                setStep(s);
-                setPlaying(true);
-              }}
-              className={`rounded-md px-3 py-1.5 text-sm ${
-                step === s
-                  ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"
-                  : "bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-        {!isEdit && (
-          <>
-            <label className="ml-2 text-xs text-white/70">Speed</label>
-            <input
-              type="range"
-              min={0.4}
-              max={2}
-              step={0.1}
-              value={speed}
-              onChange={(e) => setSpeed(parseFloat(e.target.value))}
-            />
-          </>
-        )}
-        <label className="ml-2 flex items-center gap-2 text-xs text-white/70">
-          <input
-            type="checkbox"
-            checked={showRays}
-            onChange={(e) => setShowRays(e.target.checked)}
+            }}
           />
-          Show LiDAR
-        </label>
-        <span className="ml-auto text-xs text-white/60">
-          {isEdit ? "Edit mode: drag robot/car; right-click to remove obstacle, double-click to add." : "Steps: Anchors → Planning → SLAM → Magnetic Docking → Charging"}
-        </span>
+        </div>
+
+        {/* Right: Controls */}
+        <aside className="rounded-md border border-white/10 bg-black/30 p-3">
+          <div className="mb-2 text-sm font-medium text-white/90">Controls</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => {
+                setIsEdit((e) => !e);
+                if (isEdit) {
+                  setStep("anchors");
+                  setPlaying(true);
+                  scanningStartRef.current = performance.now();
+                } else {
+                  setPlaying(false);
+                  resetVisuals();
+                  bothHitRef.current = false;
+                  signalReceivedRef.current = false;
+                }
+              }}
+              className={`rounded-md px-3 py-1.5 text-sm ${isEdit ? "bg-white/10 hover:bg-white/15" : "bg-white/15 text-white"}`}
+            >
+              {isEdit ? "Enter Run" : "Enter Edit"}
+            </button>
+            {!isEdit && (
+              <button
+                onClick={() => setPlaying((v) => !v)}
+                className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              >
+                {playing ? "Pause" : "Play"}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setTrail([]);
+                setRobot({ x: 60, y: 180 });
+                setStep("anchors");
+                setChargeProgress(0);
+                resetVisuals();
+                bothHitRef.current = false;
+                signalReceivedRef.current = false;
+                setPlaying(false);
+                setIsEdit(true);
+              }}
+              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+            >
+              Reset Robot
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 text-xs text-white/70">
+            {!isEdit && (
+              <>
+                <label>Speed</label>
+                <input
+                  type="range"
+                  min={0.4}
+                  max={2}
+                  step={0.1}
+                  value={speed}
+                  onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                />
+              </>
+            )}
+            <label className="ml-1 flex items-center gap-2">
+              <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
+              Show LiDAR
+            </label>
+          </div>
+
+          <div className="mt-4">
+            <div className="mb-1 text-xs text-white/60">Quick Steps</div>
+            <div className="flex flex-wrap gap-2">
+              {(["anchors", "slam", "docking", "charging"] as Step[]).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setStep(s);
+                    setPlaying(true);
+                  }}
+                  className={`rounded-md px-3 py-1.5 text-xs ${
+                    step === s ? "bg-white/15 text-white" : "bg-white/5 text-white/70 hover:bg-white/10"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
+            <div className="mb-1 font-medium text-white/85">Status</div>
+            <div className="text-white/70">{`Step: ${step}`}</div>
+            <div className="mt-1 text-white/60">Anchors → Planning → SLAM → Docking → Charging</div>
+          </div>
+
+        </aside>
       </div>
     </div>
   );
