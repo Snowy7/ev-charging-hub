@@ -651,7 +651,7 @@ export default function Slam2D() {
     <div className="relative">
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Left: Simulation viewport - responsive aspect ratio */}
-        <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:h-[520px] overflow-hidden rounded-lg border border-white/10 bg-black/30">
+        <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:h-[520px] overflow-hidden rounded-lg border border-slate-300 dark:border-white/10 bg-slate-900 shadow-lg">
           <canvas
             ref={ref}
             width={520}
