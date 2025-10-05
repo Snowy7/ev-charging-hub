@@ -201,15 +201,15 @@ export default function DocsLibrary() {
                 onClick={() => setF(filter)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition-all ${
+                className={`rounded-lg px-4 py-2.5 text-sm font-medium capitalize transition-all border ${
                   f === filter
-                    ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[0_0_20px_rgba(77,163,255,0.3)]"
-                    : "bg-slate-200/70 dark:bg-white/5 text-slate-700 dark:text-white/70 hover:bg-slate-300/70 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white/90"
+                    ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] border-[color:var(--color-neon-blue)]/30 shadow-[0_0_20px_rgba(77,163,255,0.3)] ring-1 ring-[color:var(--color-neon-blue)]/30"
+                    : "bg-slate-200 dark:bg-white/5 text-slate-900 dark:text-white border-slate-300 dark:border-white/10 hover:bg-slate-300 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white shadow-sm"
                 }`}
               >
                 {filter}
                 {filter !== "all" && (
-                  <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs">
+                  <span className="ml-2 rounded-full bg-slate-300 dark:bg-white/10 px-2 py-0.5 text-xs text-slate-700 dark:text-white/70">
                     {filter === "report"
                       ? docs.filter((d) => d.type === "report").length
                       : filter === "presentation"

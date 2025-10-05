@@ -15,19 +15,33 @@ export default function HeroSimulation() {
     if (!ctx) return;
 
     // Set canvas size
+    let canvasWidth = 0;
+    let canvasHeight = 0;
+    
     const updateSize = () => {
       if (!canvas || !ctx) return;
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * window.devicePixelRatio;
       canvas.height = rect.height * window.devicePixelRatio;
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      canvasWidth = rect.width;
+      canvasHeight = rect.height;
+      
+      // Update positions based on new canvas size
+      const centerY = canvasHeight * 0.5;
+      robot.x = canvasWidth * 0.15;
+      robot.y = centerY;
+      robot.targetX = canvasWidth * 0.55;
+      robot.targetY = centerY;
+      car.x = canvasWidth * 0.75;
+      car.y = centerY;
     };
     updateSize();
     window.addEventListener("resize", updateSize);
 
-    // Simulation state
-    const robot = { x: 80, y: 200, targetX: 320, targetY: 200, speed: 0 };
-    const car = { x: 380, y: 200 };
+    // Simulation state with responsive initial positions
+    const robot = { x: canvasWidth * 0.15, y: canvasHeight * 0.5, targetX: canvasWidth * 0.55, targetY: canvasHeight * 0.5, speed: 0 };
+    const car = { x: canvasWidth * 0.75, y: canvasHeight * 0.5 };
     const particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
     let phase: "idle" | "moving" | "aligning" | "charging" | "complete" = "idle";
     let phaseTimer = 0;
@@ -35,69 +49,76 @@ export default function HeroSimulation() {
 
     function drawCar(x: number, y: number, charging: boolean) {
       if (!ctx) return;
+      // Scale based on canvas width - responsive sizing
+      const scale = Math.min(1, canvasWidth / 480);
+      const carW = 80 * scale;
+      const carH = 40 * scale;
+      
       // Car body with shadow
       ctx.fillStyle = "#1e293b";
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 8 * scale;
       ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      ctx.fillRect(x - 40, y - 20, 80, 40);
+      ctx.fillRect(x - carW/2, y - carH/2, carW, carH);
       ctx.shadowBlur = 0;
       
       // Car accent lines
       ctx.fillStyle = charging ? "#4da3ff" : "#00ffa3";
       if (charging) {
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 15 * scale;
         ctx.shadowColor = "#4da3ff";
       }
-      ctx.fillRect(x - 42, y - 22, 84, 3);
-      ctx.fillRect(x - 42, y + 19, 84, 3);
+      ctx.fillRect(x - carW/2 - 2 * scale, y - carH/2 - 2 * scale, carW + 4 * scale, 3 * scale);
+      ctx.fillRect(x - carW/2 - 2 * scale, y + carH/2 - scale, carW + 4 * scale, 3 * scale);
       ctx.shadowBlur = 0;
       
       // Charging port
       ctx.fillStyle = charging ? "#4da3ff" : "#334155";
       if (charging) {
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 12 * scale;
         ctx.shadowColor = "#4da3ff";
       }
       ctx.beginPath();
-      ctx.arc(x - 32, y, 7, 0, Math.PI * 2);
+      ctx.arc(x - carW/2 + 8 * scale, y, 7 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
       
       // Wheels
       ctx.fillStyle = "#475569";
       ctx.beginPath();
-      ctx.arc(x - 24, y + 20, 6, 0, Math.PI * 2);
-      ctx.arc(x + 24, y + 20, 6, 0, Math.PI * 2);
+      ctx.arc(x - carW/4, y + carH/2, 6 * scale, 0, Math.PI * 2);
+      ctx.arc(x + carW/4, y + carH/2, 6 * scale, 0, Math.PI * 2);
       ctx.fill();
     }
 
     function drawRobot(x: number, y: number, charging: boolean) {
       if (!ctx) return;
+      // Scale based on canvas width - responsive sizing
+      const scale = Math.min(1, canvasWidth / 480);
       
       // Robot glow when charging
       if (charging) {
-        ctx.shadowBlur = 25;
+        ctx.shadowBlur = 25 * scale;
         ctx.shadowColor = "#4da3ff";
         ctx.fillStyle = "rgba(77, 163, 255, 0.25)";
         ctx.beginPath();
-        ctx.arc(x, y, 28, 0, Math.PI * 2);
+        ctx.arc(x, y, 28 * scale, 0, Math.PI * 2);
         ctx.fill();
       }
       
       // Robot body
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 8 * scale;
       ctx.shadowColor = "#1e40af";
       ctx.fillStyle = "#2563eb";
       ctx.beginPath();
-      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.arc(x, y, 16 * scale, 0, Math.PI * 2);
       ctx.fill();
       
       // Robot sensor (always glowing)
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 15 * scale;
       ctx.shadowColor = "#4da3ff";
       ctx.fillStyle = "#4da3ff";
       ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.arc(x, y, 6 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
     }
@@ -185,9 +206,11 @@ export default function HeroSimulation() {
         }
       } else if (phase === "complete") {
         if (phaseTimer > 180) {
-          // Reset
-          robot.x = 80;
-          robot.y = 200;
+          // Reset with responsive positions
+          robot.x = canvasWidth * 0.15;
+          robot.y = canvasHeight * 0.5;
+          robot.targetX = canvasWidth * 0.55;
+          robot.targetY = canvasHeight * 0.5;
           robot.speed = 0;
           chargeLevel = 0;
           phase = "moving";
@@ -222,28 +245,32 @@ export default function HeroSimulation() {
       // Draw robot
       drawRobot(robot.x, robot.y, phase === "charging");
 
-      // Draw connection line during charging
+      // Draw connection line during charging with responsive sizing
       if (phase === "charging" || phase === "complete") {
-        ctx.shadowBlur = 18;
+        const scale = Math.min(1, w / 480);
+        ctx.shadowBlur = 18 * scale;
         ctx.shadowColor = "#4da3ff";
-        const gradient = ctx.createLinearGradient(robot.x + 16, robot.y, car.x - 32, car.y);
+        const robotEdge = robot.x + 16 * scale;
+        const carEdge = car.x - (80 * scale) / 2 + 8 * scale;
+        const gradient = ctx.createLinearGradient(robotEdge, robot.y, carEdge, car.y);
         gradient.addColorStop(0, "rgba(77, 163, 255, 0.9)");
         gradient.addColorStop(0.5, "rgba(77, 163, 255, 0.7)");
         gradient.addColorStop(1, "rgba(77, 163, 255, 0.4)");
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * scale;
         ctx.beginPath();
-        ctx.moveTo(robot.x + 16, robot.y);
-        ctx.lineTo(car.x - 32, car.y);
+        ctx.moveTo(robotEdge, robot.y);
+        ctx.lineTo(carEdge, car.y);
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
 
-      // Draw status text with glow
+      // Draw status text with glow - responsive sizing
       ctx.shadowBlur = 10;
       ctx.shadowColor = "#4da3ff";
       ctx.fillStyle = "#4da3ff";
-      ctx.font = "bold 16px monospace";
+      const fontSize = Math.max(12, Math.min(16, w * 0.035));
+      ctx.font = `bold ${fontSize}px monospace`;
       ctx.textAlign = "left";
       let status = "";
       if (phase === "moving") status = "◉ NAVIGATING";
@@ -251,37 +278,45 @@ export default function HeroSimulation() {
       else if (phase === "charging") status = `◉ CHARGING ${Math.floor(chargeLevel)}%`;
       else status = "✓ COMPLETE";
       
-      ctx.fillText(status, 24, 38);
+      const padding = Math.max(16, w * 0.04);
+      ctx.fillText(status, padding, padding + fontSize);
       ctx.shadowBlur = 0;
 
-      // Draw charge bar with glow
+      // Draw charge bar with glow - responsive sizing
       if (phase === "charging" || phase === "complete") {
+        const barWidth = Math.min(240, w * 0.5);
+        const barHeight = Math.max(24, Math.min(32, h * 0.08));
+        const barX = padding;
+        const barY = h - barHeight - padding;
+        
         // Bar background
         ctx.fillStyle = "rgba(77, 163, 255, 0.15)";
-        ctx.fillRect(24, h - 50, 240, 28);
+        ctx.fillRect(barX, barY, barWidth, barHeight);
         
         // Bar border
         ctx.strokeStyle = "rgba(77, 163, 255, 0.5)";
         ctx.lineWidth = 2;
-        ctx.strokeRect(24, h - 50, 240, 28);
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
         
         // Charge fill with glow
         ctx.shadowBlur = 15;
         ctx.shadowColor = "#4da3ff";
-        const fillGradient = ctx.createLinearGradient(24, 0, 24 + 240, 0);
+        const fillGradient = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
         fillGradient.addColorStop(0, "#4da3ff");
         fillGradient.addColorStop(1, "#60a5fa");
         ctx.fillStyle = fillGradient;
-        ctx.fillRect(27, h - 47, (chargeLevel / 100) * 234, 22);
+        const fillWidth = (chargeLevel / 100) * (barWidth - 6);
+        ctx.fillRect(barX + 3, barY + 3, fillWidth, barHeight - 6);
         ctx.shadowBlur = 0;
         
         // Percentage text
         ctx.shadowBlur = 8;
         ctx.shadowColor = "#000";
         ctx.fillStyle = "#0a0f14";
-        ctx.font = "bold 14px monospace";
+        const textSize = Math.max(11, Math.min(14, barHeight * 0.5));
+        ctx.font = `bold ${textSize}px monospace`;
         ctx.textAlign = "center";
-        ctx.fillText(`${Math.floor(chargeLevel)}%`, 144, h - 30);
+        ctx.fillText(`${Math.floor(chargeLevel)}%`, barX + barWidth / 2, barY + barHeight / 2 + textSize / 3);
         ctx.shadowBlur = 0;
       }
 
