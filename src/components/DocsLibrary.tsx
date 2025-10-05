@@ -56,7 +56,7 @@ export default function DocsLibrary() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search reports, tags..."
-          className="w-full max-w-xs rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/40 focus:border-[color:var(--color-neon-blue)]/50"
+          className="w-full max-w-xs rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/40 focus:border-[color:var(--color-neon-blue)]/50 focus:ring-2 focus:ring-[color:var(--color-neon-blue)]/30"
         />
         <div className="flex flex-wrap gap-2">
           {filters.map((x) => (
@@ -65,7 +65,7 @@ export default function DocsLibrary() {
               onClick={() => setF(x)}
               className={`rounded-md px-3 py-1.5 text-sm ${
                 f === x
-                  ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"
+              ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)]"
                   : "bg-white/5 text-white/70 hover:bg-white/10"
               }`}
             >

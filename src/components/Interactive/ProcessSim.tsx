@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, TransformControls, Line, Grid } from "@react-three/drei";
+import { OrbitControls, PerspectiveCamera, TransformControls, Line, Grid, Environment } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import * as THREE from "three";
 import { Step, useSim } from "./simStore";
@@ -56,7 +56,7 @@ function Car() {
     <group>
       <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.8, 0.6, 3.6]} />
-        <meshStandardMaterial color="#0e151b" metalness={0.2} roughness={0.6} />
+        <meshStandardMaterial color="#9ca3af" metalness={0.35} roughness={0.45} />
       </mesh>
       <mesh position={[0, 0.62, 0]}>
         <boxGeometry args={[1.85, 0.04, 3.65]} />
@@ -70,7 +70,7 @@ function Car() {
       ].map((p, i) => (
         <mesh key={i} position={p as unknown as [number, number, number]} rotation={[0, 0, Math.PI / 2]} castShadow>
           <cylinderGeometry args={[0.28, 0.28, 0.22, 24]} />
-          <meshStandardMaterial color="#111922" />
+          <meshStandardMaterial color="#94a3b8" metalness={0.3} roughness={0.5} />
         </mesh>
       ))}
     </group>
@@ -82,7 +82,7 @@ function Robot() {
     <group>
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[0.35, 0.35, 0.22, 32]} />
-        <meshStandardMaterial color="#18222b" metalness={0.2} roughness={0.6} />
+        <meshStandardMaterial color="#a3b2c6" metalness={0.4} roughness={0.42} />
       </mesh>
       <mesh position={[0, 0.2, 0]}>
         <cylinderGeometry args={[0.18, 0.18, 0.12, 32]} />
@@ -198,12 +198,20 @@ function GuidanceLine({ a, b, progress = 1 }: { a: THREE.Vector3; b: THREE.Vecto
 function StepVisuals() {
   const { step, robotPos, carPos } = useSim();
   const sweepRef = useRef<THREE.Mesh>(null!);
+  const blueRingRef = useRef<THREE.Mesh>(null!);
   const time = useRef(0);
   const guideProgress = useRef(0);
   useFrame((_, dt) => {
     time.current += dt;
     if (sweepRef.current) sweepRef.current.rotation.z -= dt * 1.5;
     guideProgress.current = Math.min(1, guideProgress.current + dt * 0.5);
+    // Animate blue charging ring up/down to indicate energy transfer
+    if (step === "charging" && blueRingRef.current) {
+      const baseY = 0.65;
+      const amplitude = 0.12;
+      const speed = 2.6;
+      blueRingRef.current.position.y = baseY + Math.sin(time.current * speed) * amplitude;
+    }
   });
 
   const anchors = [
@@ -324,7 +332,7 @@ function StepVisuals() {
             <ringGeometry args={[0.26, 0.36, 96]} />
             <meshBasicMaterial color="#00ffa3" transparent opacity={0.8} depthWrite={false} blending={THREE.AdditiveBlending} />
           </mesh>
-          <mesh position={[robotPos.x, 0.65, robotPos.z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh ref={blueRingRef} position={[robotPos.x, 0.65, robotPos.z]} rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[0.22, 0.32, 96]} />
             <meshBasicMaterial color="#39b7ff" transparent opacity={0.8} depthWrite={false} blending={THREE.AdditiveBlending} />
           </mesh>
@@ -335,12 +343,13 @@ function StepVisuals() {
   );
 }
 
-function MainScene({ topDown, showRays }: { topDown: boolean; showRays: boolean }) {
+export function MainScene({ topDown, showRays, showRoom, kbActive }: { topDown: boolean; showRays: boolean; showRoom: boolean; kbActive: boolean }) {
   const { step, playing, setStep, robotPos, carPos, setRobotPos, setCarPos } = useSim();
   const [path, setPath] = useState<THREE.Vector3[]>([]);
   const [predicted, setPredicted] = useState<THREE.Vector3[]>([]);
   const controls = useRef<import("three-stdlib").OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
+  const pressedRef = useRef<Set<string>>(new Set());
   const obstacles = useMemo(() => OBSTACLES, []);
   const rayAABB = (
     ro: THREE.Vector3,
@@ -501,13 +510,97 @@ function MainScene({ topDown, showRays }: { topDown: boolean; showRays: boolean 
     }
   });
 
+  // WASD navigation when view is focused
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'a' || k === 's' || k === 'd') {
+        pressedRef.current.add(k);
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'a' || k === 's' || k === 'd') {
+        pressedRef.current.delete(k);
+      }
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, []);
+
+  useFrame((_, dt) => {
+    if (!kbActive) return;
+    const cam = cameraRef.current;
+    const oc = controls.current;
+    if (!cam || !oc) return;
+    const speed = (topDown ? 6 : 4) * dt;
+    const forward = new THREE.Vector3();
+    cam.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).negate();
+    const move = new THREE.Vector3();
+    const keys = pressedRef.current;
+    if (keys.has('w')) move.add(forward);
+    if (keys.has('s')) move.add(forward.clone().multiplyScalar(-1));
+    if (keys.has('d')) move.add(right);
+    if (keys.has('a')) move.add(right.clone().multiplyScalar(-1));
+    if (move.lengthSq() === 0) return;
+    move.normalize().multiplyScalar(speed);
+    cam.position.add(move);
+    oc.target.add(move);
+  });
+
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 6, 3]} intensity={1} castShadow />
+      {/* Ground plane under the grid */}
+      <mesh position={[0, -0.001, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[60, 60]} />
+        <meshStandardMaterial color="#0b1117" roughness={0.95} metalness={0} />
+      </mesh>
+
+      <ambientLight intensity={0.4} />
+      <hemisphereLight args={[0xbcc7d6, 0x1a1f26, 0.7]} />
+      <directionalLight position={[5, 6, 3]} intensity={0.5} castShadow />
+      <directionalLight position={[-6, 5, -3]} intensity={0.2} />
 
       {/* Grid ground */}
       <Grid args={[30, 30]} cellSize={0.6} cellThickness={0.5} sectionSize={3} sectionThickness={1} fadeDistance={18} fadeStrength={1} followCamera={false} infiniteGrid />
+
+      {/* Subtle environment lighting to prevent dark materials from appearing black */}
+      <Environment preset="city" background={false} />
+
+      {/* Optional room (open on viewing/front side) */}
+      {showRoom && (
+        <group>
+          {/* Back wall */}
+          <mesh position={[0, 3, -12]} receiveShadow>
+            <planeGeometry args={[24, 6]} />
+            <meshStandardMaterial color="#111827" roughness={0.95} />
+          </mesh>
+          {/* Left wall */}
+          <mesh position={[-12, 3, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[24, 6]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.95} />
+          </mesh>
+          {/* Right wall */}
+          <mesh position={[12, 3, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+            <planeGeometry args={[24, 6]} />
+            <meshStandardMaterial color="#0f172a" roughness={0.95} />
+          </mesh>
+          {/* Ceiling: hide in top-down to avoid blocking */}
+          {!topDown && (
+            <mesh position={[0, 6, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[24, 24]} />
+              <meshStandardMaterial color="#0b1320" roughness={0.9} />
+            </mesh>
+          )}
+        </group>
+      )}
 
       <Draggable
         active={!playing}
@@ -657,6 +750,8 @@ export default function ProcessSim() {
   const [contextLost, setContextLost] = useState(false);
   const [topDown, setTopDown] = useState(false);
   const [showRays, setShowRays] = useState(true);
+  const [showRoom, setShowRoom] = useState(true);
+  const [kbActive, setKbActive] = useState(false);
   useEffect(() => {
     if (!playing && step === "idle") return;
     if (step === "scan") {
@@ -693,9 +788,11 @@ export default function ProcessSim() {
               };
               canvas.addEventListener("webglcontextlost", onLost, { passive: false } as AddEventListenerOptions);
             }}
+            onPointerOver={() => setKbActive(true)}
+            onPointerOut={() => setKbActive(false)}
           >
             <Suspense fallback={null}>
-              <MainScene topDown={topDown} showRays={showRays} />
+              <MainScene topDown={topDown} showRays={showRays} showRoom={showRoom} kbActive={kbActive} />
             </Suspense>
           </Canvas>
           {contextLost && (
@@ -744,6 +841,10 @@ export default function ProcessSim() {
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
               Show LiDAR
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={showRoom} onChange={(e) => setShowRoom(e.target.checked)} />
+              Show Room
             </label>
           </div>
 

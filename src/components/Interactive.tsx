@@ -35,7 +35,7 @@ export default function Interactive() {
           onClick={() => setTab("process")}
           className={`rounded-md px-3 py-1.5 text-sm ${
             tab === "process"
-              ? "bg-[color:var(--color-neon-green)]/15 text-[color:var(--color-neon-green)] ring-1 ring-[color:var(--color-neon-green)]/30"
+              ? "bg-[color:var(--color-neon-blue)]/15 text-[color:var(--color-neon-blue)] ring-1 ring-[color:var(--color-neon-blue)]/30"
               : "bg-white/5 text-white/70 hover:bg-white/10"
           }`}
         >

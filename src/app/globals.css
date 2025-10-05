@@ -2,20 +2,22 @@
 
 /* Theme tokens (Tailwind v4 CSS-first) */
 @theme {
-  --color-bg: #0a0f14;
-  --color-surface: rgba(255, 255, 255, 0.06);
-  --color-surface-2: rgba(255, 255, 255, 0.09);
-  --color-card-stroke: rgba(255, 255, 255, 0.12);
-  --color-text: #eaf6ff;
-  --color-dim: #b9d6f2;
+  /* Base palette from user */
+  --color-bg: #111111;
+  --color-surface: #2a2a2a;
+  --color-surface-2: #2a2a2a;
+  --color-card-stroke: #000000;
+  --color-text: #fcfcfc;
+  --color-dim: #e2e2e2;
 
-  --color-neon-blue: #39b7ff;
-  --color-neon-green: #00ffa3;
+  /* Accent: blue as primary */
+  --color-neon-blue: #4da3ff; /* blue accent */
+  --color-neon-green: #4da3ff; /* unify accents to blue */
   --color-danger: #ff6b6b;
 
-  --shadow-glow: 0 0 24px rgba(57, 183, 255, 0.35);
-  --shadow-glowg: 0 0 24px rgba(0, 255, 163, 0.35);
-  --shadow-elev: 0 10px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-glow: 0 0 28px rgba(77, 163, 255, 0.35);
+  --shadow-glowg: 0 0 24px rgba(77, 163, 255, 0.25);
+  --shadow-elev: 0 10px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -30,12 +32,13 @@
 @custom-variant light (&:where(:root[data-theme="light"], :root.light, :root[data-mode="light"]));
 @media (prefers-color-scheme: light) {
   :root:not(.dark):not([data-theme="dark"]) {
+    /* Keep light mode strictly black/white per palette */
     --color-bg: #ffffff;
-    --color-surface: rgba(10, 15, 20, 0.05);
-    --color-surface-2: rgba(10, 15, 20, 0.08);
-    --color-card-stroke: rgba(10, 15, 20, 0.12);
-    --color-text: #0e141b;
-    --color-dim: #2c3a46;
+    --color-surface: #e2e2e2;
+    --color-surface-2: #e2e2e2;
+    --color-card-stroke: #2a2a2a;
+    --color-text: #111111;
+    --color-dim: #2a2a2a;
   }
 }
 
@@ -105,15 +108,16 @@ body {
 
 /* Card styles: pop + lift */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-card-stroke);
+  background: color-mix(in srgb, var(--color-surface) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card-stroke) 55%, transparent);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-elev);
-  backdrop-filter: blur(4px);
-  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+  backdrop-filter: blur(10px);
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease, background 250ms ease;
 }
 .card:hover {
   transform: translateY(-4px);
+  background: color-mix(in srgb, var(--color-surface) 32%, transparent);
   box-shadow: var(--shadow-elev), var(--shadow-glow);
   border-color: color-mix(in srgb, var(--color-neon-blue) 40%, var(--color-card-stroke));
 }
@@ -142,10 +146,10 @@ html {
 
 /* --- Hero enhancers --- */
 .glass {
-  background: color-mix(in srgb, var(--color-surface) 100%, transparent);
-  border: 1px solid var(--color-card-stroke);
+  background: color-mix(in srgb, var(--color-surface) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card-stroke) 45%, transparent);
   border-radius: var(--radius-md);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(12px);
 }
 
 @keyframes float-y {
@@ -161,8 +165,8 @@ html {
   pointer-events: none;
 }
 
-.orb-blue { background: radial-gradient(circle, #39b7ff 0%, transparent 60%); }
-.orb-green { background: radial-gradient(circle, #00ffa3 0%, transparent 60%); }
+.orb-blue { background: radial-gradient(circle, rgba(77,163,255,0.45) 0%, transparent 60%); }
+.orb-green { background: radial-gradient(circle, rgba(77,163,255,0.25) 0%, transparent 60%); }
 
 .scroll-cue {
   width: 22px;
@@ -184,6 +188,27 @@ html {
   background: color-mix(in srgb, var(--color-neon-blue) 80%, white);
   animation: cue 1.8s ease-in-out infinite;
 }
+
+/* Global floating blobs layer */
+.global-blobs {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.global-blobs .blob {
+  position: absolute;
+  filter: blur(60px);
+  opacity: 0.35;
+  background: radial-gradient(circle, rgba(77,163,255,0.5) 0%, transparent 60%);
+  animation: none; /* keep blobs fixed in place */
+}
+.global-blobs .blob:nth-child(1) { left: 6%; top: 10vh; width: 34vw; height: 34vw; }
+.global-blobs .blob:nth-child(2) { right: 10%; top: 80vh; width: 26vw; height: 26vw; }
+.global-blobs .blob:nth-child(3) { left: 12%; top: 160vh; width: 30vw; height: 30vw; }
+.global-blobs .blob:nth-child(4) { right: 14%; top: 240vh; width: 28vw; height: 28vw; opacity: 0.28; }
+.global-blobs .blob:nth-child(5) { left: 46%; top: 320vh; width: 22vw; height: 22vw; opacity: 0.22; }
 @keyframes cue {
   0%, 100% { transform: translate(-50%, 0); opacity: 0.9; }
   50% { transform: translate(-50%, 10px); opacity: 0.3; }

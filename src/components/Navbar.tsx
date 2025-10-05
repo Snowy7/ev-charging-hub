@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import Image from "next/image";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,7 +16,7 @@ export default function Navbar() {
   }, []);
 
   const link =
-    "text-sm text-white/80 hover:text-[color:var(--color-neon-green)] transition-colors";
+    "text-sm text-white/80 hover:text-[color:var(--color-neon-blue)] transition-colors";
 
   return (
     <header className={clsx("fixed inset-x-0 z-40 pointer-events-none transition-all duration-300 ease-in-out", scrolled ? "top-4" : "top-0") }>
@@ -34,8 +35,15 @@ export default function Navbar() {
               scrolled ? "px-5 py-3" : "px-6 py-4"
             )}
           >
-            <a href="#" className="font-semibold text-white">
-              EV Charging Hub
+            <a href="/" className="flex items-center gap-2" aria-label="AutoCharge Home">
+              <Image
+                src="/images/logo/black-logo-text-removebg-preview.png"
+                alt="AutoCharge"
+                width={150}
+                height={24}
+                className="h-8 w-auto select-none"
+                priority
+              />
             </a>
             {/* Desktop links */}
             <div className="hidden items-center gap-4 md:flex">
@@ -80,7 +88,7 @@ export default function Navbar() {
                 <a
                   onClick={() => setOpen(false)}
                   href="#contact"
-                  className="mt-1 rounded-md bg-[color:var(--color-neon-blue)]/20 px-3 py-2 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)] hover:bg-[color:var(--color-neon-blue)]/30"
+                className="mt-1 rounded-md bg-[color:var(--color-neon-blue)]/20 px-3 py-2 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)] hover:bg-[color:var(--color-neon-blue)]/30"
                 >
                   Contact
                 </a>

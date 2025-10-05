@@ -25,27 +25,27 @@ export default function Hero() {
 
       {/* Glowing gradient orbs for depth (hero only) */}
       <div
-        className="orb orb-blue -left-24 top-10 h-72 w-72"
+        className="orb orb-blue -left-24 top-12 h-64 w-64"
         style={{ animation: "float-y 10s ease-in-out infinite" }}
       />
       <div
-        className="orb orb-green -right-24 top-40 h-72 w-72"
+        className="orb orb-green -right-24 top-44 h-64 w-64"
         style={{ animation: "float-y 12s ease-in-out infinite" }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-16 md:pb-24">
-        <div className="grid items-center gap-10 md:grid-cols-2">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-20 md:pb-24">
+        <div className="grid items-center gap-12 md:grid-cols-2">
           {/* Left column: copy, chips, stats, ctas */}
           <div>
             <motion.h1
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.7 }}
-              className="text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl xl:text-7xl"
+              className="max-w-2xl text-3xl font-semibold tracking-tight leading-tight md:text-4xl lg:text-5xl xl:text-6xl"
             >
               Redefining EV Charging
-              <span className="block text-[color:var(--color-neon-green)] drop-shadow-[0_0_12px_#00ffa399]">
-                Smart. Autonomous. Wireless.
+              <span className="block text-white drop-shadow-[0_0_12px_rgba(77,163,255,0.55)]">
+                No plugs. No hassle. Just charge.
               </span>
             </motion.h1>
 
@@ -53,7 +53,7 @@ export default function Hero() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.15, duration: 0.7 }}
-              className="mt-4 max-w-xl text-white/80"
+              className="mt-5 max-w-xl text-white/80"
             >
               An autonomous robotic platform that precisely aligns wireless
               coils for optimal efficiency and effortless charging—no cables,
@@ -65,7 +65,7 @@ export default function Hero() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.25, duration: 0.6 }}
-              className="mt-5 flex flex-wrap gap-2"
+              className="mt-6 flex flex-wrap gap-2"
             >
               <Chip>SLAM + LiDAR</Chip>
               <Chip>UWB Homing</Chip>
@@ -78,7 +78,7 @@ export default function Hero() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.35, duration: 0.6 }}
-              className="mt-6 grid grid-cols-3 gap-3 max-w-md"
+              className="mt-7 grid grid-cols-3 gap-4 max-w-md"
             >
               <Stat label="Efficiency" value="≥ 85%" />
               <Stat label="Align Accuracy" value="≤ 2 cm" />
@@ -90,17 +90,17 @@ export default function Hero() {
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.45, duration: 0.6 }}
-              className="mt-7 flex flex-wrap gap-3"
+              className="mt-8 flex flex-wrap gap-3"
             >
               <a
                 href="#interactive"
-                className="rounded-md bg-[color:var(--color-neon-blue)]/20 px-5 py-3 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)] transition-colors hover:bg-[color:var(--color-neon-blue)]/30"
+                className="rounded-md bg-[color:var(--color-neon-blue)]/15 px-4 py-2.5 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)] transition-colors hover:bg-[color:var(--color-neon-blue)]/25"
               >
                 Explore Interactive Demos
               </a>
               <a
                 href="#media"
-                className="rounded-md bg-white/10 px-5 py-3 text-white/90 transition-colors hover:bg-white/15"
+                className="rounded-md bg-white/10 px-4 py-2.5 text-white/90 transition-colors hover:bg-white/15"
               >
                 Watch Prototype Video
               </a>
@@ -115,7 +115,7 @@ export default function Hero() {
             className="card overflow-hidden"
           >
             <div className="relative aspect-video">
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(57,183,255,0.2),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(0,255,163,0.18),transparent_55%)]" />
+              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.16),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.12),transparent_55%)]" />
               <button
                 aria-label="Play video"
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/50 p-4 backdrop-blur hover:bg-black/60"
@@ -142,7 +142,7 @@ export default function Hero() {
               </div>
               <a
                 href="#interactive"
-                className="rounded-md bg-[color:var(--color-neon-green)]/20 px-3 py-1.5 text-[color:var(--color-neon-green)] hover:bg-[color:var(--color-neon-green)]/30"
+                className="rounded-md bg-[color:var(--color-neon-blue)]/20 px-3 py-1.5 text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30"
               >
                 Try it
               </a>
