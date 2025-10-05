@@ -51,6 +51,18 @@ export default function MediaShowcase() {
     return () => window.removeEventListener("keydown", onKey);
   }, [active, items.length]);
 
+  // Prevent background scrolling when lightbox is open
+  useEffect(() => {
+    if (active !== null) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [active]);
+
   return (
     <section id="media" className="mx-auto max-w-7xl px-6 py-20">
       <motion.div
@@ -202,11 +214,11 @@ export default function MediaShowcase() {
                 priority
               />
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-lg font-medium text-slate-900 dark:text-white">
+            <div className="mt-6 rounded-xl bg-black/80 backdrop-blur-md p-4">
+              <p className="text-xl font-semibold text-white drop-shadow-lg">
                 {items[active].title ?? items[active].alt}
               </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-white/60">
+              <p className="mt-2 text-base text-white/80">
                 {active + 1} / {items.length}
               </p>
             </div>

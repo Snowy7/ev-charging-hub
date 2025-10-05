@@ -147,8 +147,8 @@ export default function Hero() {
             </div>
             <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
               <div>
-                <h3 className="font-semibold text-lg text-slate-900 dark:text-white">Autonomous Docking Demo</h3>
-                <p className="text-sm text-slate-600 dark:text-dim">See the robot align and charge in real-time.</p>
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-white">Live Autonomous Docking</h3>
+                <p className="text-sm text-slate-600 dark:text-dim">Press play to watch the robot navigate and charge.</p>
               </div>
               <motion.a
                 href="#interactive"
@@ -156,7 +156,7 @@ export default function Hero() {
                 whileTap={{ scale: 0.95 }}
                 className="rounded-lg bg-[color:var(--color-neon-blue)]/20 px-4 py-2 text-sm font-medium text-[color:var(--color-neon-blue)] transition-all hover:bg-[color:var(--color-neon-blue)]/30"
               >
-                Try it
+                Full 3D Demo
               </motion.a>
             </div>
           </motion.div>

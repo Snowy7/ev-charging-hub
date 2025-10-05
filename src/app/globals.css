@@ -312,14 +312,14 @@ html {
   animation-delay: -7s;
 }
 
-/* Light mode blobs - keep them visible but subtle */
+/* Light mode blobs - MUCH more visible */
 :root.light .global-blobs .blob {
-  opacity: 0.12;
-  filter: blur(110px);
-  background: radial-gradient(circle, rgba(77,163,255,0.4) 0%, transparent 60%);
+  opacity: 0.2;
+  filter: blur(90px);
+  background: radial-gradient(circle, rgba(77,163,255,0.5) 0%, transparent 60%);
 }
 
-/* Animated power grid background - STATIC grid */
+/* Animated power grid background - VISIBLE grid */
 .power-grid {
   position: fixed;
   inset: 0;
@@ -327,97 +327,80 @@ html {
   pointer-events: none;
   overflow: hidden;
   background-image: 
-    linear-gradient(to right, rgba(77, 163, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(77, 163, 255, 0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(to right, rgba(77, 163, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(77, 163, 255, 0.08) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
-/* Glowing pulse traveling through grid lines */
+/* Horizontal energy pulses - thin bright lines moving across grid */
 .power-grid::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: 
-    /* Horizontal pulse lines */
-    linear-gradient(to right, 
-      transparent 0%,
-      transparent 20%,
-      rgba(77, 163, 255, 0) 30%,
-      rgba(77, 163, 255, 0.8) 50%,
-      rgba(77, 163, 255, 0) 70%,
-      transparent 80%,
-      transparent 100%
-    );
-  background-size: 400px 60px;
-  background-position: -400px 0;
-  animation: pulse-horizontal 4s ease-in-out infinite;
-  mask-image: 
-    linear-gradient(to right, rgba(77, 163, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(77, 163, 255, 0.06) 1px, transparent 1px);
-  mask-size: 60px 60px;
-  mask-composite: intersect;
+  width: 25px;
+  height: 4px;
+  background: radial-gradient(ellipse, rgba(77, 163, 255, 1) 0%, rgba(77, 163, 255, 0.8) 30%, transparent 100%);
+  filter: blur(3px);
+  animation: pulse-horizontal-1 7s linear infinite;
+  mix-blend-mode: screen;
+  /* Randomized pulses at different grid lines with varied delays */
+  box-shadow: 
+    0 160px 0 0 rgba(77, 163, 255, 0.95),
+    0 320px 0 0 rgba(77, 163, 255, 0.85),
+    0 240px 0 0 rgba(77, 163, 255, 1),
+    0 480px 0 0 rgba(77, 163, 255, 0.9),
+    0 640px 0 0 rgba(77, 163, 255, 0.8),
+    0 400px 0 0 rgba(77, 163, 255, 0.95);
 }
 
-/* Vertical pulse traveling through grid */
+/* Vertical energy pulses - thin bright lines moving down grid */
 .power-grid::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image: 
-    /* Vertical pulse lines */
-    linear-gradient(to bottom, 
-      transparent 0%,
-      transparent 20%,
-      rgba(77, 163, 255, 0) 30%,
-      rgba(77, 163, 255, 0.8) 50%,
-      rgba(77, 163, 255, 0) 70%,
-      transparent 80%,
-      transparent 100%
-    );
-  background-size: 60px 400px;
-  background-position: 0 -400px;
-  animation: pulse-vertical 5s ease-in-out infinite 2s;
-  mask-image: 
-    linear-gradient(to right, rgba(77, 163, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(77, 163, 255, 0.06) 1px, transparent 1px);
-  mask-size: 60px 60px;
-  mask-composite: intersect;
+  width: 4px;
+  height: 25px;
+  background: radial-gradient(ellipse, rgba(77, 163, 255, 0.95) 0%, rgba(77, 163, 255, 0.7) 30%, transparent 100%);
+  filter: blur(3px);
+  animation: pulse-vertical-1 9s linear infinite 2.5s;
+  mix-blend-mode: screen;
+  /* Randomized pulses at different grid lines with varied delays */
+  box-shadow: 
+    240px 0 0 0 rgba(77, 163, 255, 1),
+    480px 0 0 0 rgba(77, 163, 255, 0.85),
+    160px 0 0 0 rgba(77, 163, 255, 0.9),
+    560px 0 0 0 rgba(77, 163, 255, 0.95),
+    320px 0 0 0 rgba(77, 163, 255, 0.8),
+    720px 0 0 0 rgba(77, 163, 255, 0.9);
 }
 
-/* Light mode grid - more visible */
+/* Light mode grid - MUCH more visible */
 :root.light .power-grid {
   background-image: 
-    linear-gradient(to right, rgba(77, 163, 255, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(77, 163, 255, 0.12) 1px, transparent 1px);
-  opacity: 0.6;
+    linear-gradient(to right, rgba(77, 163, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(77, 163, 255, 0.35) 1px, transparent 1px);
 }
 
 :root.light .power-grid::before {
-  background-image: 
-    linear-gradient(to right, 
-      transparent 0%,
-      transparent 20%,
-      rgba(77, 163, 255, 0) 30%,
-      rgba(77, 163, 255, 0.6) 50%,
-      rgba(77, 163, 255, 0) 70%,
-      transparent 80%,
-      transparent 100%
-    );
-  opacity: 0.7;
+  background: radial-gradient(ellipse, rgba(77, 163, 255, 0.85) 0%, rgba(77, 163, 255, 0.6) 30%, transparent 100%);
+  filter: blur(4px);
+  box-shadow: 
+    0 160px 0 0 rgba(77, 163, 255, 0.8),
+    0 320px 0 0 rgba(77, 163, 255, 0.7),
+    0 240px 0 0 rgba(77, 163, 255, 0.85),
+    0 480px 0 0 rgba(77, 163, 255, 0.75),
+    0 640px 0 0 rgba(77, 163, 255, 0.65),
+    0 400px 0 0 rgba(77, 163, 255, 0.8);
 }
 
 :root.light .power-grid::after {
-  background-image: 
-    linear-gradient(to bottom, 
-      transparent 0%,
-      transparent 20%,
-      rgba(77, 163, 255, 0) 30%,
-      rgba(77, 163, 255, 0.6) 50%,
-      rgba(77, 163, 255, 0) 70%,
-      transparent 80%,
-      transparent 100%
-    );
-  opacity: 0.7;
+  background: radial-gradient(ellipse, rgba(77, 163, 255, 0.8) 0%, rgba(77, 163, 255, 0.55) 30%, transparent 100%);
+  filter: blur(4px);
+  box-shadow: 
+    240px 0 0 0 rgba(77, 163, 255, 0.85),
+    480px 0 0 0 rgba(77, 163, 255, 0.7),
+    160px 0 0 0 rgba(77, 163, 255, 0.75),
+    560px 0 0 0 rgba(77, 163, 255, 0.8),
+    320px 0 0 0 rgba(77, 163, 255, 0.65),
+    720px 0 0 0 rgba(77, 163, 255, 0.75);
 }
 
 /* Navbar in light mode */
@@ -449,7 +432,7 @@ html {
 :root.light h1,
 :root.light h2,
 :root.light h3,
-:root.light h4,
+:root.light h4, 
 :root.light h5,
 :root.light h6 {
   color: #0f172a !important;
@@ -535,39 +518,27 @@ html {
   }
 }
 
-/* Horizontal pulse traveling along grid lines */
-@keyframes pulse-horizontal {
+/* Horizontal pulse moving left to right along grid line */
+@keyframes pulse-horizontal-1 {
   0% {
-    background-position: -400px 0;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
+    left: -30px;
+    top: 80px; /* Align with a grid line */
   }
   100% {
-    background-position: calc(100% + 400px) 0;
-    opacity: 0;
+    left: calc(100% + 30px);
+    top: 80px;
   }
 }
 
-/* Vertical pulse traveling along grid lines */
-@keyframes pulse-vertical {
+/* Vertical pulse moving top to bottom along grid line */
+@keyframes pulse-vertical-1 {
   0% {
-    background-position: 0 -400px;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
+    top: -30px;
+    left: 400px; /* Align with a grid line */
   }
   100% {
-    background-position: 0 calc(100% + 400px);
-    opacity: 0;
+    top: calc(100% + 30px);
+    left: 400px;
   }
 }
 

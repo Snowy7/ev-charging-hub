@@ -125,7 +125,7 @@ function MainScene() {
   ];
 
   /* --- VISUALS --- */
-  const beams: JSX.Element[] = [];
+  const beams: React.ReactElement[] = [];
   if (step === "scan" || step === "homing") {
     const rays = 36;
     for (let i = 0; i < rays; i++) {
