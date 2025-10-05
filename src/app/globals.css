@@ -332,7 +332,7 @@ html {
   background-size: 80px 80px;
 }
 
-/* Horizontal energy pulses - multiple with different speeds */
+/* Horizontal energy pulses - thin bright lines moving across grid */
 .power-grid::before {
   content: '';
   position: absolute;
@@ -341,17 +341,18 @@ html {
   background: radial-gradient(ellipse, rgba(77, 163, 255, 1) 0%, rgba(77, 163, 255, 0.8) 30%, transparent 100%);
   filter: blur(3px);
   mix-blend-mode: screen;
-  /* Multiple pulses at different speeds and delays */
+  /* Multiple independent animations with randomized speeds and delays */
   animation: 
-    pulse-h1 4s linear infinite,
-    pulse-h2 7s linear infinite 1.2s,
-    pulse-h3 5.5s linear infinite 3s,
-    pulse-h4 9s linear infinite 0.5s,
-    pulse-h5 6s linear infinite 2.8s,
-    pulse-h6 8.5s linear infinite 4s;
+    pulse-h1 4.2s linear infinite 0s,
+    pulse-h2 11.5s linear infinite 2.3s,
+    pulse-h3 6.8s linear infinite 4.7s,
+    pulse-h4 9.1s linear infinite 1.5s,
+    pulse-h5 3.5s linear infinite 5.8s,
+    pulse-h6 7.3s linear infinite 0.9s,
+    pulse-h7 10.2s linear infinite 3.6s;
 }
 
-/* Vertical energy pulses - multiple with different speeds */
+/* Vertical energy pulses - thin bright lines moving down grid */
 .power-grid::after {
   content: '';
   position: absolute;
@@ -360,14 +361,15 @@ html {
   background: radial-gradient(ellipse, rgba(77, 163, 255, 0.95) 0%, rgba(77, 163, 255, 0.7) 30%, transparent 100%);
   filter: blur(3px);
   mix-blend-mode: screen;
-  /* Multiple pulses at different speeds and delays */
+  /* Multiple independent animations with randomized speeds and delays */
   animation: 
-    pulse-v1 5s linear infinite,
-    pulse-v2 8s linear infinite 1.5s,
-    pulse-v3 6.5s linear infinite 2.2s,
-    pulse-v4 10s linear infinite 0.8s,
-    pulse-v5 7s linear infinite 3.5s,
-    pulse-v6 9.5s linear infinite 4.2s;
+    pulse-v1 5.4s linear infinite 1.2s,
+    pulse-v2 12.1s linear infinite 4.5s,
+    pulse-v3 7.7s linear infinite 0.3s,
+    pulse-v4 4.9s linear infinite 6.1s,
+    pulse-v5 9.8s linear infinite 2.8s,
+    pulse-v6 6.2s linear infinite 5.3s,
+    pulse-v7 8.5s linear infinite 3.9s;
 }
 
 /* Light mode grid - MUCH more visible */
@@ -502,56 +504,64 @@ html {
   }
 }
 
-/* Horizontal pulses - each at different grid lines with randomized speeds */
+/* Horizontal pulses - each at different grid line with independent movement */
 @keyframes pulse-h1 {
-  0% { box-shadow: -30px 80px 0 0 rgba(77, 163, 255, 1); }
-  100% { box-shadow: calc(100% + 30px) 80px 0 0 rgba(77, 163, 255, 1); }
+  0% { left: -30px; top: 80px; }
+  100% { left: calc(100% + 30px); top: 80px; }
 }
 @keyframes pulse-h2 {
-  0% { box-shadow: 0 240px 0 0 rgba(77, 163, 255, 0.9); }
-  100% { box-shadow: 100% 240px 0 0 rgba(77, 163, 255, 0.9); }
+  0% { left: -30px; top: 160px; }
+  100% { left: calc(100% + 30px); top: 160px; }
 }
 @keyframes pulse-h3 {
-  0% { box-shadow: 0 160px 0 0 rgba(77, 163, 255, 0.95); }
-  100% { box-shadow: 100% 160px 0 0 rgba(77, 163, 255, 0.95); }
+  0% { left: -30px; top: 240px; }
+  100% { left: calc(100% + 30px); top: 240px; }
 }
 @keyframes pulse-h4 {
-  0% { box-shadow: 0 400px 0 0 rgba(77, 163, 255, 0.85); }
-  100% { box-shadow: 100% 400px 0 0 rgba(77, 163, 255, 0.85); }
+  0% { left: -30px; top: 320px; }
+  100% { left: calc(100% + 30px); top: 320px; }
 }
 @keyframes pulse-h5 {
-  0% { box-shadow: 0 320px 0 0 rgba(77, 163, 255, 0.9); }
-  100% { box-shadow: 100% 320px 0 0 rgba(77, 163, 255, 0.9); }
+  0% { left: -30px; top: 400px; }
+  100% { left: calc(100% + 30px); top: 400px; }
 }
 @keyframes pulse-h6 {
-  0% { box-shadow: 0 480px 0 0 rgba(77, 163, 255, 0.88); }
-  100% { box-shadow: 100% 480px 0 0 rgba(77, 163, 255, 0.88); }
+  0% { left: -30px; top: 480px; }
+  100% { left: calc(100% + 30px); top: 480px; }
+}
+@keyframes pulse-h7 {
+  0% { left: -30px; top: 640px; }
+  100% { left: calc(100% + 30px); top: 640px; }
 }
 
-/* Vertical pulses - each at different grid lines with randomized speeds */
+/* Vertical pulses - each at different grid line with independent movement */
 @keyframes pulse-v1 {
-  0% { box-shadow: 160px -30px 0 0 rgba(77, 163, 255, 0.95); }
-  100% { box-shadow: 160px calc(100% + 30px) 0 0 rgba(77, 163, 255, 0.95); }
+  0% { top: -30px; left: 160px; }
+  100% { top: calc(100% + 30px); left: 160px; }
 }
 @keyframes pulse-v2 {
-  0% { box-shadow: 400px 0 0 0 rgba(77, 163, 255, 0.9); }
-  100% { box-shadow: 400px 100% 0 0 rgba(77, 163, 255, 0.9); }
+  0% { top: -30px; left: 240px; }
+  100% { top: calc(100% + 30px); left: 240px; }
 }
 @keyframes pulse-v3 {
-  0% { box-shadow: 240px 0 0 0 rgba(77, 163, 255, 1); }
-  100% { box-shadow: 240px 100% 0 0 rgba(77, 163, 255, 1); }
+  0% { top: -30px; left: 320px; }
+  100% { top: calc(100% + 30px); left: 320px; }
 }
 @keyframes pulse-v4 {
-  0% { box-shadow: 560px 0 0 0 rgba(77, 163, 255, 0.85); }
-  100% { box-shadow: 560px 100% 0 0 rgba(77, 163, 255, 0.85); }
+  0% { top: -30px; left: 400px; }
+  100% { top: calc(100% + 30px); left: 400px; }
 }
 @keyframes pulse-v5 {
-  0% { box-shadow: 320px 0 0 0 rgba(77, 163, 255, 0.92); }
-  100% { box-shadow: 320px 100% 0 0 rgba(77, 163, 255, 0.92); }
+  0% { top: -30px; left: 480px; }
+  100% { top: calc(100% + 30px); left: 480px; }
 }
 @keyframes pulse-v6 {
-  0% { box-shadow: 480px 0 0 0 rgba(77, 163, 255, 0.88); }
-  100% { box-shadow: 480px 100% 0 0 rgba(77, 163, 255, 0.88); }
+  0% { top: -30px; left: 560px; }
+  100% { top: calc(100% + 30px); left: 560px; }
+}
+@keyframes pulse-v7 {
+  0% { top: -30px; left: 720px; }
+  100% { top: calc(100% + 30px); left: 720px; }
 }
 
 @keyframes cue {
