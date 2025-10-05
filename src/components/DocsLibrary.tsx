@@ -162,11 +162,7 @@ export default function DocsLibrary() {
 
   return (
     <section id="docs" className="mx-auto max-w-7xl px-6 py-20">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <div className="mb-8">
           <h2 className="mb-3 text-4xl font-bold tracking-tight">Documentation Library</h2>
           <p className="text-lg text-slate-600 dark:text-dim">
@@ -287,7 +283,7 @@ export default function DocsLibrary() {
             <div className="text-sm text-slate-600 dark:text-dim">Logbooks</div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
