@@ -14,10 +14,20 @@ export default function HeroSimulation() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
-    let canvasWidth = 0;
-    let canvasHeight = 0;
+    // Get initial canvas size
+    const rect = canvas.getBoundingClientRect();
+    let canvasWidth = rect.width;
+    let canvasHeight = rect.height;
+
+    // Simulation state with responsive initial positions
+    const robot = { x: canvasWidth * 0.15, y: canvasHeight * 0.5, targetX: canvasWidth * 0.55, targetY: canvasHeight * 0.5, speed: 0 };
+    const car = { x: canvasWidth * 0.75, y: canvasHeight * 0.5 };
+    const particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
+    let phase: "idle" | "moving" | "aligning" | "charging" | "complete" = "idle";
+    let phaseTimer = 0;
+    let chargeLevel = 0;
     
+    // Set canvas size and update positions on resize
     const updateSize = () => {
       if (!canvas || !ctx) return;
       const rect = canvas.getBoundingClientRect();
@@ -38,14 +48,6 @@ export default function HeroSimulation() {
     };
     updateSize();
     window.addEventListener("resize", updateSize);
-
-    // Simulation state with responsive initial positions
-    const robot = { x: canvasWidth * 0.15, y: canvasHeight * 0.5, targetX: canvasWidth * 0.55, targetY: canvasHeight * 0.5, speed: 0 };
-    const car = { x: canvasWidth * 0.75, y: canvasHeight * 0.5 };
-    const particles: Array<{ x: number; y: number; vx: number; vy: number; life: number; size: number }> = [];
-    let phase: "idle" | "moving" | "aligning" | "charging" | "complete" = "idle";
-    let phaseTimer = 0;
-    let chargeLevel = 0;
 
     function drawCar(x: number, y: number, charging: boolean) {
       if (!ctx) return;
