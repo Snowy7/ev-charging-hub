@@ -569,21 +569,45 @@ html {
   50% { transform: translate(-50%, 10px); opacity: 0.3; }
 }
 
-/* Mobile responsive for simulations */
+/* Mobile responsive improvements */
+@media (max-width: 1024px) {
+  /* Simulation controls on mobile - ensure proper spacing */
+  aside {
+    min-height: auto !important;
+  }
+  
+  /* Buttons remain readable */
+  aside button {
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+  }
+  
+  /* Input controls are easier to tap */
+  aside input[type="checkbox"] {
+    min-width: 1rem;
+    min-height: 1rem;
+  }
+  
+  aside input[type="range"] {
+    min-height: 2.5rem;
+  }
+}
+
 @media (max-width: 768px) {
-  .card canvas {
-    max-height: 400px !important;
-  }
-  
-  /* Scale down text in simulation controls */
-  .card button,
-  .card input,
-  .card select {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Reduce padding on mobile */
+  /* Reduce card padding on small screens */
   .card {
     padding: 1rem !important;
+  }
+  
+  /* Simulation controls stack nicely */
+  aside {
+    padding: 1rem !important;
+  }
+  
+  /* Ensure canvas doesn't overflow */
+  canvas {
+    max-width: 100%;
+    max-height: 100%;
+    touch-action: none;
   }
 }

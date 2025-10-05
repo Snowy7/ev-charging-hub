@@ -649,14 +649,14 @@ export default function Slam2D() {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Left: Simulation viewport */}
-        <div className="h-[560px] w-full overflow-hidden rounded-md border border-white/10 bg-black/30">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Left: Simulation viewport - responsive aspect ratio */}
+        <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:h-[520px] overflow-hidden rounded-lg border border-white/10 bg-black/30">
           <canvas
             ref={ref}
             width={520}
             height={340}
-            className="w-full block h-full"
+            className="w-full h-full block"
             onMouseDown={(e) => {
             if (!isEdit) return;
             const p = toLocal(e);
@@ -727,10 +727,10 @@ export default function Slam2D() {
           />
         </div>
 
-        {/* Right: Controls */}
-        <aside className="rounded-md border border-white/10 bg-black/30 p-3">
-          <div className="mb-2 text-sm font-medium text-white/90">Controls</div>
-          <div className="flex flex-wrap items-center gap-2">
+        {/* Right: Controls - improved readability */}
+        <aside className="rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/90 p-4 shadow-lg">
+          <div className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Controls</div>
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => {
                 setIsEdit((e) => !e);
@@ -745,14 +745,18 @@ export default function Slam2D() {
                   signalReceivedRef.current = false;
                 }
               }}
-              className={`rounded-md px-3 py-1.5 text-sm ${isEdit ? "bg-white/10 hover:bg-white/15" : "bg-white/15 text-white"}`}
+              className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors border ${
+                isEdit 
+                  ? "bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 border-slate-300 dark:border-white/10" 
+                  : "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] ring-1 ring-[color:var(--color-neon-blue)]/30 border-[color:var(--color-neon-blue)]/30"
+              }`}
             >
               {isEdit ? "Enter Run" : "Enter Edit"}
             </button>
             {!isEdit && (
               <button
                 onClick={() => setPlaying((v) => !v)}
-                className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+                className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10"
               >
                 {playing ? "Pause" : "Play"}
               </button>
@@ -769,34 +773,36 @@ export default function Slam2D() {
                 setPlaying(false);
                 setIsEdit(true);
               }}
-              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10"
             >
-              Reset Robot
+              Reset
             </button>
           </div>
 
-          <div className="mt-3 flex items-center gap-2 text-xs text-white/70">
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-900 dark:text-white">
             {!isEdit && (
-              <>
-                <label>Speed</label>
+              <div className="flex items-center gap-2 w-full">
+                <label className="font-medium">Speed:</label>
                 <input
                   type="range"
+                  className="flex-1"
                   min={0.4}
                   max={2}
                   step={0.1}
                   value={speed}
                   onChange={(e) => setSpeed(parseFloat(e.target.value))}
                 />
-              </>
+                <span className="text-xs font-mono text-slate-900 dark:text-white">{speed.toFixed(1)}x</span>
+              </div>
             )}
-            <label className="ml-1 flex items-center gap-2">
-              <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
-              Show LiDAR
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
+              <span>Show LiDAR</span>
             </label>
           </div>
 
-          <div className="mt-4">
-            <div className="mb-1 text-xs text-white/60">Quick Steps</div>
+          <div className="mt-5">
+            <div className="mb-2 text-sm font-medium text-slate-900 dark:text-white">Quick Steps</div>
             <div className="flex flex-wrap gap-2">
               {(["anchors", "slam", "docking", "charging"] as Step[]).map((s) => (
                 <button
@@ -805,8 +811,10 @@ export default function Slam2D() {
                     setStep(s);
                     setPlaying(true);
                   }}
-                  className={`rounded-md px-3 py-1.5 text-xs ${
-                    step === s ? "bg-white/15 text-white" : "bg-white/5 text-white/70 hover:bg-white/10"
+                  className={`rounded-lg px-3 py-2 text-sm font-medium capitalize transition-colors border ${
+                    step === s 
+                      ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] ring-1 ring-[color:var(--color-neon-blue)]/30 border-[color:var(--color-neon-blue)]/30" 
+                      : "bg-slate-200 dark:bg-white/5 text-slate-900 dark:text-white border-slate-300 dark:border-white/10 hover:bg-slate-300 dark:hover:bg-white/10"
                   }`}
                 >
                   {s}
@@ -815,11 +823,17 @@ export default function Slam2D() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
-            <div className="mb-1 font-medium text-white/85">Status</div>
-            <div className="text-white/70">{`Step: ${step}`}</div>
-            <div className="mt-1 text-white/60">Anchors → Planning → SLAM → Docking → Charging</div>
+          <div className="mt-5 rounded-lg border border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5 p-3 text-sm text-slate-900 dark:text-white">
+            <div className="mb-1.5 font-semibold text-slate-900 dark:text-white">Status</div>
+            <div className="text-slate-700 dark:text-slate-300 capitalize">{`Step: ${step}`}</div>
+            <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">Anchors → Planning → SLAM → Docking → Charging</div>
           </div>
+
+          {isEdit && (
+            <div className="mt-3 rounded-lg border border-blue-400 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-900/20 p-3 text-sm text-blue-900 dark:text-blue-300">
+              Tip: Drag robot, car, or obstacles. Double-click to add. Right-click to remove.
+            </div>
+          )}
 
         </aside>
       </div>

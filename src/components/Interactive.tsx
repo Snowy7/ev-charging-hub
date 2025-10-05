@@ -63,13 +63,13 @@ export default function Interactive() {
         </p>
       </motion.div>
 
-      {/* Tab Buttons */}
+      {/* Tab Buttons - compact on mobile */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="mb-6 flex flex-wrap gap-3"
+        className="mb-6 flex flex-wrap gap-2 sm:gap-3"
       >
         {tabs.map((t) => (
           <motion.button
@@ -77,16 +77,17 @@ export default function Interactive() {
             onClick={() => setTab(t.id)}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className={`flex items-center gap-2 rounded-xl px-5 py-3 font-medium transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-3 sm:px-5 py-2 sm:py-3 text-sm sm:text-base font-medium transition-all ${
               tab === t.id
                 ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] shadow-[0_0_20px_rgba(77,163,255,0.3)] ring-1 ring-[color:var(--color-neon-blue)]/30"
                 : "bg-slate-200/50 dark:bg-white/5 text-slate-700 dark:text-white/70 hover:bg-slate-300/50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white/90"
             }`}
           >
-            {t.icon}
-            <span>
-              {t.label}
-              <span className="ml-2 text-xs opacity-70">({t.subtitle})</span>
+            <span className="shrink-0">{t.icon}</span>
+            <span className="whitespace-nowrap">
+              <span className="hidden sm:inline">{t.label}</span>
+              <span className="sm:hidden">{t.label.split(' ')[0]}</span>
+              <span className="ml-1 sm:ml-2 text-xs opacity-70">({t.subtitle})</span>
             </span>
           </motion.button>
         ))}

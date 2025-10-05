@@ -772,9 +772,9 @@ export default function ProcessSim() {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Left: Simulation viewport, fixed height */}
-        <div className="h-[560px] w-full overflow-hidden rounded-md relative">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Left: Simulation viewport - responsive aspect ratio */}
+        <div className="relative w-full aspect-[16/10] lg:aspect-auto lg:h-[520px] overflow-hidden rounded-lg border border-white/10 bg-black/30">
           <Canvas
             key={canvasKey}
             shadows={{ type: THREE.PCFSoftShadowMap }}
@@ -796,11 +796,11 @@ export default function ProcessSim() {
             </Suspense>
           </Canvas>
           {contextLost && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
-              <div className="rounded-md border border-white/15 bg-black/60 p-4 text-sm">
-                <div className="mb-2 text-white/80">Graphics context was lost.</div>
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="rounded-lg border border-white/15 bg-black/60 p-5 text-base">
+                <div className="mb-3 text-white/90">Graphics context was lost.</div>
                 <button
-                  className="rounded-md bg-white/10 px-3 py-1.5 text-white/90 hover:bg-white/15"
+                  className="rounded-lg bg-white/10 px-4 py-2 text-white/90 hover:bg-white/15"
                   onClick={() => {
                     setContextLost(false);
                     setCanvasKey((k) => k + 1);
@@ -813,51 +813,51 @@ export default function ProcessSim() {
           )}
         </div>
 
-        {/* Right: Controls and status */}
-        <aside className="rounded-md border border-white/10 bg-black/30 p-3">
-          <div className="mb-2 text-sm font-medium text-white/90">Controls</div>
-          <div className="flex flex-wrap items-center gap-2">
+        {/* Right: Controls and status - improved readability */}
+        <aside className="rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-900/90 p-4 shadow-lg">
+          <div className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Controls</div>
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
-              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10"
               onClick={() => (playing ? setPlaying(false) : start())}
             >
               {playing ? "Pause" : "Play"}
             </button>
-            <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={stop}>
+            <button className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10" onClick={stop}>
               Stop
             </button>
-            <button className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15" onClick={() => setCanvasKey((k) => k + 1)}>
-              Restart 3D
+            <button className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10" onClick={() => setCanvasKey((k) => k + 1)}>
+              Restart
             </button>
             <button
-              className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/15"
+              className="rounded-lg bg-slate-200 dark:bg-white/10 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-white/20 transition-colors border border-slate-300 dark:border-white/10"
               onClick={() => setTopDown((v) => !v)}
             >
-              {topDown ? "Free View" : "Top‑down"}
+              {topDown ? "Free View" : "Top-down"}
             </button>
           </div>
 
-          <div className="mt-3 flex items-center gap-2 text-xs text-white/70">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
-              Show LiDAR
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-900 dark:text-white">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4" checked={showRays} onChange={(e) => setShowRays(e.target.checked)} />
+              <span>Show LiDAR</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={showRoom} onChange={(e) => setShowRoom(e.target.checked)} />
-              Show Room
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4" checked={showRoom} onChange={(e) => setShowRoom(e.target.checked)} />
+              <span>Show Room</span>
             </label>
           </div>
 
-          <div className="mt-4">
-            <div className="mb-1 text-xs text-white/60">Quick Steps</div>
+          <div className="mt-5">
+            <div className="mb-2 text-sm font-medium text-slate-900 dark:text-white">Quick Steps</div>
             <div className="flex flex-wrap gap-2">
               {(["scan", "navigating", "docking", "charging"] as Step[]).map((s) => (
                 <button
                   key={s}
-                  className={`rounded-md px-3 py-1.5 text-xs ${
+                  className={`rounded-lg px-3 py-2 text-sm font-medium capitalize transition-colors border ${
                     step === s
-                      ? "bg-white/15 text-white"
-                      : "bg-white/5 text-white/70 hover:bg-white/10"
+                      ? "bg-[color:var(--color-neon-blue)]/20 text-[color:var(--color-neon-blue)] ring-1 ring-[color:var(--color-neon-blue)]/30 border-[color:var(--color-neon-blue)]/30"
+                      : "bg-slate-200 dark:bg-white/5 text-slate-900 dark:text-white border-slate-300 dark:border-white/10 hover:bg-slate-300 dark:hover:bg-white/10"
                   }`}
                   onClick={() => {
                     setStep(s);
@@ -870,21 +870,21 @@ export default function ProcessSim() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
-            <div className="mb-1 font-medium text-white/85">Status</div>
-            <div className="text-white/70">{`Step: ${step}`}</div>
-            <div className="mt-1 text-white/60">Scan → Navigate → Dock → Charge</div>
+          <div className="mt-5 rounded-lg border border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5 p-3 text-sm text-slate-900 dark:text-white">
+            <div className="mb-1.5 font-semibold text-slate-900 dark:text-white">Status</div>
+            <div className="text-slate-700 dark:text-slate-300 capitalize">{`Step: ${step}`}</div>
+            <div className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">Scan → Navigate → Dock → Charge</div>
           </div>
 
           {step === "charging" && (
-            <div className="mt-3 rounded-md border border-white/10 bg-black/20 p-2 text-xs text-white/80">
+            <div className="mt-3 rounded-lg border border-green-400 dark:border-green-500/30 bg-green-50 dark:bg-green-900/20 p-3 text-sm text-green-900 dark:text-green-300">
               Charging… Coils aligned. Energy transfer stabilized.
             </div>
           )}
 
-          <div className="mt-4 rounded-md border border-white/10 bg-black/20 p-2">
-            <div className="mb-1 text-xs text-white/60">Mini‑map</div>
-            <div className="aspect-video overflow-hidden rounded">
+          <div className="mt-5 rounded-lg border border-slate-300 dark:border-white/20 bg-slate-100 dark:bg-white/5 p-3">
+            <div className="mb-2 text-sm font-medium text-slate-900 dark:text-white">Mini-map</div>
+            <div className="aspect-video overflow-hidden rounded-lg">
               <MiniMap />
             </div>
           </div>
