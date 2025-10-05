@@ -4,69 +4,102 @@ import { motion } from "framer-motion";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass px-3 py-2">
-      <div className="text-xs text-white/60">{label}</div>
-      <div className="text-lg font-semibold">{value}</div>
-    </div>
+    <motion.div
+      whileHover={{ scale: 1.05, y: -2 }}
+      className="glass px-4 py-3 transition-all hover:bg-white/10 dark:hover:bg-white/10"
+    >
+      <div className="text-xs font-medium text-slate-600 dark:text-white/60">{label}</div>
+      <div className="text-xl font-bold text-[color:var(--color-neon-blue)]">{value}</div>
+    </motion.div>
   );
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="glass px-3 py-1 text-xs text-white/80">{children}</span>
+    <motion.span
+      whileHover={{ scale: 1.05 }}
+      className="glass px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-white/90 transition-all hover:bg-white/10 dark:hover:bg-white/10"
+    >
+      {children}
+    </motion.span>
   );
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative min-h-screen overflow-hidden pt-24 pb-12 md:pt-32 md:pb-20">
       {/* Hero grid background scoped with radial fade */}
-      <div className="pointer-events-none absolute inset-0 z-0 hero-grid bg-grid" style={{ animation: "float-y 10s ease-in-out infinite", position: "absolute" }} />
+      <div
+        className="pointer-events-none absolute inset-0 z-0 hero-grid bg-grid"
+        style={{ animation: "float-y 15s ease-in-out infinite" }}
+      />
 
       {/* Glowing gradient orbs for depth (hero only) */}
       <div
-        className="orb orb-blue -left-24 top-12 h-64 w-64"
-        style={{ animation: "float-y 10s ease-in-out infinite" }}
-      />
-      <div
-        className="orb orb-green -right-24 top-44 h-64 w-64"
+        className="orb orb-blue -left-24 top-12 h-64 w-64 md:h-96 md:w-96"
         style={{ animation: "float-y 12s ease-in-out infinite" }}
       />
+      <div
+        className="orb orb-green -right-24 top-44 h-64 w-64 md:h-96 md:w-96"
+        style={{ animation: "float-y 14s ease-in-out infinite 2s" }}
+      />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-28 pb-20 md:pb-24">
-        <div className="grid items-center gap-12 md:grid-cols-2">
+      <div className="relative z-10 mx-auto max-w-7xl px-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16"
+        >
           {/* Left column: copy, chips, stats, ctas */}
-          <div>
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.7 }}
-              className="max-w-2xl text-3xl font-semibold tracking-tight leading-tight md:text-4xl lg:text-5xl xl:text-6xl"
-            >
-              Redefining EV Charging
-              <span className="block text-white drop-shadow-[0_0_12px_rgba(77,163,255,0.55)]">
-                No plugs. No hassle. Just charge.
-              </span>
-            </motion.h1>
+          <div className="space-y-8">
+            <motion.div variants={itemVariants} className="space-y-6">
+              <h1 className="text-4xl font-bold tracking-tight leading-tight sm:text-5xl md:text-6xl lg:text-7xl text-slate-900 dark:text-white">
+                <span className="block">Redefining</span>
+                <span className="block text-[color:var(--color-neon-blue)] drop-shadow-[0_0_20px_rgba(77,163,255,0.6)]">
+                  EV Charging
+                </span>
+              </h1>
+
+              <p className="text-xl text-slate-700 dark:text-white/80 leading-relaxed sm:text-2xl">
+                No plugs. No hassle.{" "}
+                <span className="font-semibold text-slate-900 dark:text-white">Just charge.</span>
+              </p>
+            </motion.div>
 
             <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.15, duration: 0.7 }}
-              className="mt-5 max-w-xl text-white/80"
+              variants={itemVariants}
+              className="max-w-xl text-base leading-relaxed sm:text-lg text-slate-700 dark:text-white/75"
             >
-              An autonomous robotic platform that precisely aligns wireless
-              coils for optimal efficiency and effortless charging—no cables,
-              no hassle.
+              An autonomous robotic platform that precisely aligns wireless coils for optimal
+              efficiency and effortless charging—no cables, no hassle.
             </motion.p>
 
             {/* Feature chips */}
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25, duration: 0.6 }}
-              className="mt-6 flex flex-wrap gap-2"
-            >
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-3">
               <Chip>SLAM + LiDAR</Chip>
               <Chip>UWB Homing</Chip>
               <Chip>QR Docking ≤ 2 cm</Chip>
@@ -75,86 +108,91 @@ export default function Hero() {
 
             {/* KPIs */}
             <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.35, duration: 0.6 }}
-              className="mt-7 grid grid-cols-3 gap-4 max-w-md"
+              variants={itemVariants}
+              className="grid grid-cols-3 gap-3 sm:gap-4"
             >
               <Stat label="Efficiency" value="≥ 85%" />
-              <Stat label="Align Accuracy" value="≤ 2 cm" />
-              <Stat label="Docking Time" value="≤ 60 s" />
+              <Stat label="Accuracy" value="≤ 2 cm" />
+              <Stat label="Docking" value="≤ 60 s" />
             </motion.div>
 
             {/* CTAs */}
             <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.45, duration: 0.6 }}
-              className="mt-8 flex flex-wrap gap-3"
+              variants={itemVariants}
+              className="flex flex-col gap-3 sm:flex-row sm:gap-4"
             >
-              <a
+              <motion.a
                 href="#interactive"
-                className="rounded-md bg-[color:var(--color-neon-blue)]/15 px-4 py-2.5 text-[color:var(--color-neon-blue)] shadow-[var(--shadow-glow)] transition-colors hover:bg-[color:var(--color-neon-blue)]/25"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(77, 163, 255, 0.5)" }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-xl bg-[color:var(--color-neon-blue)]/20 px-6 py-3.5 text-center font-semibold text-[color:var(--color-neon-blue)] shadow-[0_0_30px_rgba(77,163,255,0.3)] transition-all hover:bg-[color:var(--color-neon-blue)]/30"
               >
                 Explore Interactive Demos
-              </a>
-              <a
+              </motion.a>
+              <motion.a
                 href="#media"
-                className="rounded-md bg-white/10 px-4 py-2.5 text-white/90 transition-colors hover:bg-white/15"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-xl bg-white/10 px-6 py-3.5 text-center font-semibold text-white/90 backdrop-blur transition-all hover:bg-white/15"
               >
                 Watch Prototype Video
-              </a>
+              </motion.a>
             </motion.div>
           </div>
 
           {/* Right column: media card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="card overflow-hidden"
-          >
+          <motion.div variants={itemVariants} className="card overflow-hidden">
             <div className="relative aspect-video">
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.16),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.12),transparent_55%)]" />
-              <button
+              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(77,163,255,0.2),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(77,163,255,0.15),transparent_55%)]" />
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 aria-label="Play video"
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/50 p-4 backdrop-blur hover:bg-black/60"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--color-neon-blue)]/20 p-5 backdrop-blur transition-all hover:bg-[color:var(--color-neon-blue)]/30 hover:shadow-[0_0_30px_rgba(77,163,255,0.5)]"
                 onClick={() => {
                   const el = document.getElementById("media");
                   el?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
                 <svg
-                  width="22"
-                  height="22"
+                  width="28"
+                  height="28"
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
+                  className="text-[color:var(--color-neon-blue)]"
                 >
-                  <path d="M8 5v14l11-7L8 5z" fill="#eaf6ff" />
+                  <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
                 </svg>
-              </button>
+              </motion.button>
             </div>
-            <div className="flex flex-col items-start justify-between gap-3 p-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
               <div>
-                <h3 className="font-medium">Autonomous Docking Demo</h3>
-                <p className="text-sm text-dim">See the robot align and charge.</p>
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-white">Autonomous Docking Demo</h3>
+                <p className="text-sm text-slate-600 dark:text-dim">See the robot align and charge in real-time.</p>
               </div>
-              <a
+              <motion.a
                 href="#interactive"
-                className="rounded-md bg-[color:var(--color-neon-blue)]/20 px-3 py-1.5 text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-lg bg-[color:var(--color-neon-blue)]/20 px-4 py-2 text-sm font-medium text-[color:var(--color-neon-blue)] transition-all hover:bg-[color:var(--color-neon-blue)]/30"
               >
                 Try it
-              </a>
+              </motion.a>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* Scroll cue */}
-        <div className="mt-10 flex items-center gap-3 text-sm text-white/70">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.8 }}
+          className="mt-16 flex items-center justify-center gap-3 text-sm text-slate-600 dark:text-white/70 md:justify-start"
+        >
           <div className="scroll-cue" />
           <span>Scroll to explore the interactive demos</span>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

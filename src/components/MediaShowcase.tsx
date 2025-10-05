@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MediaItem {
   src: string;
@@ -51,13 +52,29 @@ export default function MediaShowcase() {
   }, [active, items.length]);
 
   return (
-    <section id="media" className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-      <h2 className="mb-6 text-3xl font-semibold">Media Showcase</h2>
+    <section id="media" className="mx-auto max-w-7xl px-6 py-20">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="mb-12"
+      >
+        <h2 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">Media Gallery</h2>
+        <p className="text-lg text-slate-600 dark:text-dim">
+          Visual documentation of our wireless charging system, designs, and test results
+        </p>
+      </motion.div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {featured.map((item, idx) => (
-          <div
+          <motion.div
             key={idx}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: idx * 0.1, duration: 0.5 }}
+            whileHover={{ y: -8 }}
             className="card overflow-hidden cursor-zoom-in group"
             onClick={() => setActive(idx)}
           >
@@ -67,62 +84,82 @@ export default function MediaShowcase() {
                 alt={item.alt}
                 fill
                 priority={item.priority}
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 50vw"
               />
               <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{boxShadow:"inset 0 0 0 2px color-mix(in srgb, var(--color-neon-blue) 55%, transparent)", background:"radial-gradient(circle at 70% 30%, rgba(77,163,255,0.18), transparent 55%)"}} />
             </div>
-            <div className="p-4">
-              <h3 className="mb-1 font-medium group-hover:text-[color:var(--color-neon-blue)] transition-colors">{item.title ?? item.alt}</h3>
-              {item.desc && <p className="text-sm text-dim">{item.desc}</p>}
+            <div className="p-5">
+              <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white group-hover:text-[color:var(--color-neon-blue)] transition-colors">{item.title ?? item.alt}</h3>
+              {item.desc && <p className="text-sm text-slate-600 dark:text-dim">{item.desc}</p>}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {gallery.map((g, i) => (
-          <div
+          <motion.div
             key={i}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.05, duration: 0.4 }}
+            whileHover={{ y: -6 }}
             className="card overflow-hidden cursor-zoom-in group"
             onClick={() => setActive(i + featured.length)}
           >
-            <div className="relative h-44 w-full">
+            <div className="relative h-48 w-full">
               <Image
                 src={g.src}
                 alt={g.alt}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{boxShadow:"inset 0 0 0 1px color-mix(in srgb, var(--color-neon-blue) 55%, transparent)", background:"radial-gradient(circle at 70% 30%, rgba(77,163,255,0.14), transparent 55%)"}} />
             </div>
-            <div className="p-3">
-              <p className="text-sm text-white/80 group-hover:text-[color:var(--color-neon-blue)] transition-colors">{g.alt}</p>
+            <div className="p-4">
+              <p className="text-sm font-medium text-slate-700 dark:text-white/80 group-hover:text-[color:var(--color-neon-blue)] transition-colors">{g.alt}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {active !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-          onClick={() => setActive(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            className="absolute right-4 top-4 rounded bg-[color:var(--color-neon-blue)]/20 px-3 py-1 text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30 shadow-[var(--shadow-glow)]"
+      <AnimatePresence>
+        {active !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+            onClick={() => setActive(null)}
+            role="dialog"
+            aria-modal="true"
+          >
+          <motion.button
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute right-4 top-4 rounded-lg bg-[color:var(--color-neon-blue)]/20 px-4 py-2 text-sm font-medium text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30 shadow-[var(--shadow-glow)] backdrop-blur"
             onClick={(e) => {
               e.stopPropagation();
               setActive(null);
             }}
           >
             Close
-          </button>
+          </motion.button>
 
-          <button
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded bg-[color:var(--color-neon-blue)]/20 p-2 text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30"
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            whileHover={{ scale: 1.1, x: -4 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-lg bg-[color:var(--color-neon-blue)]/20 p-3 text-2xl text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30 backdrop-blur"
             onClick={(e) => {
               e.stopPropagation();
               setActive((i) => (i === null ? 0 : (i - 1 + items.length) % items.length));
@@ -130,9 +167,14 @@ export default function MediaShowcase() {
             aria-label="Previous"
           >
             ‹
-          </button>
-          <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded bg-[color:var(--color-neon-blue)]/20 p-2 text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30"
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            whileHover={{ scale: 1.1, x: 4 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-lg bg-[color:var(--color-neon-blue)]/20 p-3 text-2xl text-[color:var(--color-neon-blue)] hover:bg-[color:var(--color-neon-blue)]/30 backdrop-blur"
             onClick={(e) => {
               e.stopPropagation();
               setActive((i) => (i === null ? 0 : (i + 1) % items.length));
@@ -140,10 +182,17 @@ export default function MediaShowcase() {
             aria-label="Next"
           >
             ›
-          </button>
+          </motion.button>
 
-          <div className="relative mx-auto w-full max-w-5xl p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="relative h-[70vh] w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="relative mx-auto w-full max-w-5xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-[70vh] w-full rounded-xl overflow-hidden">
               <Image
                 src={items[active].src}
                 alt={items[active].alt}
@@ -153,12 +202,18 @@ export default function MediaShowcase() {
                 priority
               />
             </div>
-            <div className="mt-3 text-center text-sm text-white/80">
-              {items[active].title ?? items[active].alt}
+            <div className="mt-4 text-center">
+              <p className="text-lg font-medium text-slate-900 dark:text-white">
+                {items[active].title ?? items[active].alt}
+              </p>
+              <p className="mt-1 text-sm text-slate-600 dark:text-white/60">
+                {active + 1} / {items.length}
+              </p>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

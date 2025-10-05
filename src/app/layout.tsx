@@ -1,5 +1,6 @@
 import "@/app/globals.css";
 import type { Metadata } from "next";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Smart Autonomous EV Charging Hub",
@@ -16,14 +17,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <div className="global-blobs" aria-hidden>
-          <div className="blob" />
-          <div className="blob" />
-          <div className="blob" />
-          <div className="blob" />
-          <div className="blob" />
-        </div>
-        <div className="relative z-10">{children}</div>
+        <ThemeProvider>
+          <div className="global-blobs" aria-hidden="true">
+            <div className="blob" />
+            <div className="blob" />
+            <div className="blob" />
+            <div className="blob" />
+            <div className="blob" />
+          </div>
+          <div className="relative z-10">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );
