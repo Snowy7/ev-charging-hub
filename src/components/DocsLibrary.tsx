@@ -163,10 +163,9 @@ export default function DocsLibrary() {
   return (
     <section id="docs" className="mx-auto max-w-7xl px-6 py-20">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
         <div className="mb-8">
           <h2 className="mb-3 text-4xl font-bold tracking-tight">Documentation Library</h2>
@@ -268,13 +267,7 @@ export default function DocsLibrary() {
         )}
 
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-12 grid gap-4 sm:grid-cols-3"
-        >
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
           <div className="card p-6 text-center">
             <div className="mb-2 text-3xl font-bold text-[color:var(--color-neon-blue)]">
               {docs.filter((d) => d.type === "report").length}
@@ -293,7 +286,7 @@ export default function DocsLibrary() {
             </div>
             <div className="text-sm text-slate-600 dark:text-dim">Logbooks</div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     </section>
   );
@@ -305,10 +298,9 @@ function DocumentCard({ doc, index }: { doc: Doc; index: number }) {
       href={doc.url}
       target="_blank"
       rel="noreferrer"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05, duration: 0.4 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.3 }}
       whileHover={{ y: -4 }}
       className="card group relative overflow-hidden"
     >
