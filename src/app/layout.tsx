@@ -18,6 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
+          {/* Animated power grid background */}
+          <div className="power-grid" aria-hidden="true" />
+          
+          {/* Floating energy blobs */}
           <div className="global-blobs" aria-hidden="true">
             <div className="blob" />
             <div className="blob" />
@@ -25,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="blob" />
             <div className="blob" />
           </div>
+          
           <div className="relative z-10">{children}</div>
         </ThemeProvider>
       </body>

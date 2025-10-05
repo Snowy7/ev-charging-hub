@@ -91,7 +91,7 @@ export default function Team() {
               </h3>
 
               {/* Links */}
-              <div className="flex items-center justify-center gap-3 border-t border-slate-200 dark:border-white/10 pt-5">
+              <div className="flex items-center justify-center gap-3 border-t border-slate-300 dark:border-white/10 pt-5">
                 <motion.a
                   href={person.links.linkedin}
                   whileHover={{ scale: 1.05, y: -2 }}

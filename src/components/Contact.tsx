@@ -37,7 +37,7 @@ export default function Contact() {
       >
         <h2 className="mb-4 text-4xl font-bold tracking-tight md:text-5xl">Get in Touch</h2>
         <p className="max-w-2xl text-lg text-slate-600 dark:text-white/70 leading-relaxed">
-          Interested in our project or looking to collaborate? We'd love to hear from you.
+          Interested in our project or looking to collaborate? We&apos;d love to hear from you.
         </p>
       </motion.div>
 

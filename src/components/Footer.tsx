@@ -1,19 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function Footer() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const currentYear = new Date().getFullYear();
+  const { theme } = useTheme();
 
   return (
     <footer className="relative mt-20 border-t border-white/10 bg-black/20 backdrop-blur">
@@ -27,7 +20,11 @@ export default function Footer() {
             transition={{ duration: 0.5 }}
           >
             <Image
-              src="/images/logo/white-logo-text-removebg-preview.png"
+              src={
+                theme === "dark"
+                ? "/images/logo/black-logo-text-removebg-preview.png"
+                : "/images/logo/white-logo-text-removebg-preview.png"
+              }
               alt="AutoCharge"
               width={140}
               height={28}

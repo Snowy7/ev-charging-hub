@@ -15,31 +15,49 @@ const sideOffset = new THREE.Vector3(-0.9, 0, 0);
 
 /* ------------------ MODELS ------------------- */
 function RobotModel() {
+  // Call hook unconditionally
+  let scene = null;
   try {
-    const { scene } = useGLTF("/models/robot.glb");
-    return <primitive object={scene} scale={0.8} />;
-  } catch {
-    return (
-      <mesh>
-        <cylinderGeometry args={[0.35, 0.35, 0.25, 32]} />
-        <meshStandardMaterial color="#39b7ff" emissive="#0b3a52" emissiveIntensity={0.8} />
-      </mesh>
-    );
+    const gltf = useGLTF("/models/robot.glb");
+    scene = gltf.scene;
+  } catch (error) {
+    // Fallback to primitive mesh
+    scene = null;
   }
+  
+  if (scene) {
+    return <primitive object={scene} scale={0.8} />;
+  }
+  
+  return (
+    <mesh>
+      <cylinderGeometry args={[0.35, 0.35, 0.25, 32]} />
+      <meshStandardMaterial color="#39b7ff" emissive="#0b3a52" emissiveIntensity={0.8} />
+    </mesh>
+  );
 }
 
 function CarModel() {
+  // Call hook unconditionally
+  let scene = null;
   try {
-    const { scene } = useGLTF("/models/car.glb");
-    return <primitive object={scene} scale={1} />;
-  } catch {
-    return (
-      <mesh>
-        <boxGeometry args={[2, 0.9, 4]} />
-        <meshStandardMaterial color="#00ffa3" emissive="#0a523f" emissiveIntensity={0.6} />
-      </mesh>
-    );
+    const gltf = useGLTF("/models/car.glb");
+    scene = gltf.scene;
+  } catch (error) {
+    // Fallback to primitive mesh
+    scene = null;
   }
+  
+  if (scene) {
+    return <primitive object={scene} scale={1} />;
+  }
+  
+  return (
+    <mesh>
+      <boxGeometry args={[2, 0.9, 4]} />
+      <meshStandardMaterial color="#00ffa3" emissive="#0a523f" emissiveIntensity={0.6} />
+    </mesh>
+  );
 }
 
 /* ------------------ MAIN SCENE --------------- */

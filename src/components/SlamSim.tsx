@@ -33,7 +33,7 @@ export default function SlamSim() {
     const dist = Math.hypot(dx, dy) || 1;
     const goal = { x: dx / dist, y: dy / dist };
 
-    let steer = { x: 0, y: 0 };
+    const steer = { x: 0, y: 0 };
     obstacles.forEach(({ p, r }) => {
       const ox = robot.x - p.x;
       const oy = robot.y - p.y;

@@ -63,7 +63,7 @@ export default function Navbar() {
             {mounted && (
               <Image
                 src={
-                  theme === "light"
+                  theme === "dark"
                     ? "/images/logo/black-logo-text-removebg-preview.png"
                     : "/images/logo/white-logo-text-removebg-preview.png"
                 }

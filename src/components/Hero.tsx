@@ -1,6 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+
+const HeroSimulation = dynamic(() => import("./HeroSimulation"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse bg-[color:var(--color-neon-blue)]/5" />,
+});
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -41,23 +47,13 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
   },
 };
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 pb-12 md:pt-32 md:pb-20">
-      {/* Hero grid background scoped with radial fade */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 hero-grid bg-grid"
-        style={{ animation: "float-y 15s ease-in-out infinite" }}
-      />
-
-      {/* Glowing gradient orbs for depth (hero only) */}
+      {/* Extra hero orbs for depth */}
       <div
         className="orb orb-blue -left-24 top-12 h-64 w-64 md:h-96 md:w-96"
         style={{ animation: "float-y 12s ease-in-out infinite" }}
@@ -76,7 +72,7 @@ export default function Hero() {
         >
           {/* Left column: copy, chips, stats, ctas */}
           <div className="space-y-8">
-            <motion.div variants={itemVariants} className="space-y-6">
+            <motion.div variants={itemVariants} transition={{ duration: 0.5 }} className="space-y-6">
               <h1 className="text-4xl font-bold tracking-tight leading-tight sm:text-5xl md:text-6xl lg:text-7xl text-slate-900 dark:text-white">
                 <span className="block">Redefining</span>
                 <span className="block text-[color:var(--color-neon-blue)] drop-shadow-[0_0_20px_rgba(77,163,255,0.6)]">
@@ -92,6 +88,7 @@ export default function Hero() {
 
             <motion.p
               variants={itemVariants}
+              transition={{ duration: 0.5 }}
               className="max-w-xl text-base leading-relaxed sm:text-lg text-slate-700 dark:text-white/75"
             >
               An autonomous robotic platform that precisely aligns wireless coils for optimal
@@ -99,7 +96,7 @@ export default function Hero() {
             </motion.p>
 
             {/* Feature chips */}
-            <motion.div variants={itemVariants} className="flex flex-wrap gap-3">
+            <motion.div variants={itemVariants} transition={{ duration: 0.5 }} className="flex flex-wrap gap-3">
               <Chip>SLAM + LiDAR</Chip>
               <Chip>UWB Homing</Chip>
               <Chip>QR Docking ≤ 2 cm</Chip>
@@ -109,6 +106,7 @@ export default function Hero() {
             {/* KPIs */}
             <motion.div
               variants={itemVariants}
+              transition={{ duration: 0.5 }}
               className="grid grid-cols-3 gap-3 sm:gap-4"
             >
               <Stat label="Efficiency" value="≥ 85%" />
@@ -119,6 +117,7 @@ export default function Hero() {
             {/* CTAs */}
             <motion.div
               variants={itemVariants}
+              transition={{ duration: 0.5 }}
               className="flex flex-col gap-3 sm:flex-row sm:gap-4"
             >
               <motion.a
@@ -140,31 +139,11 @@ export default function Hero() {
             </motion.div>
           </div>
 
-          {/* Right column: media card */}
-          <motion.div variants={itemVariants} className="card overflow-hidden">
-            <div className="relative aspect-video">
-              <div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,rgba(77,163,255,0.2),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(77,163,255,0.15),transparent_55%)]" />
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Play video"
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color:var(--color-neon-blue)]/20 p-5 backdrop-blur transition-all hover:bg-[color:var(--color-neon-blue)]/30 hover:shadow-[0_0_30px_rgba(77,163,255,0.5)]"
-                onClick={() => {
-                  const el = document.getElementById("media");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-[color:var(--color-neon-blue)]"
-                >
-                  <path d="M8 5v14l11-7L8 5z" fill="currentColor" />
-                </svg>
-              </motion.button>
+          {/* Right column: media card with live simulation */}
+          <motion.div variants={itemVariants} transition={{ duration: 0.5 }} className="card overflow-hidden">
+            <div className="relative aspect-video bg-[#0a0f14]">
+              <HeroSimulation />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             </div>
             <div className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center">
               <div>
